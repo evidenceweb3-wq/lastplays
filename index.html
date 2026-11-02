@@ -1,0 +1,139 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAST PLAYS · The Pump.fun Trenches Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script>
+/* ====== EDITA SOLO ESTAS 2 LÍNEAS (Supabase > Project Settings > API) ====== */
+window.CFG = { supabaseUrl: "https://TU-PROYECTO.supabase.co", supabaseAnonKey: "TU_ANON_KEY" };
+/* ======================================================================== */
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.56.0/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#050705;--p:#0a110a;--p2:#0e180e;--l:#1a2a1a;--a:#9DFF57;--t:#d8e6d0;--m:#6f8a68;--r:#ff5d5d;font-family:'Space Grotesk',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font-size:14px}
+.mono,td,.pill,small{font-family:'DM Mono',monospace}
+header{display:flex;align-items:center;gap:24px;padding:14px 24px;border-bottom:1px solid var(--l);position:sticky;top:0;background:var(--bg);z-index:5;flex-wrap:wrap}
+.brand b{color:var(--a);font-size:20px;letter-spacing:.12em;text-shadow:0 0 18px #9dff5755}.brand small{display:block;color:var(--m);font-size:10px;letter-spacing:.18em}
+nav{display:flex;gap:2px;flex-wrap:wrap}nav a{color:var(--m);text-decoration:none;padding:8px 14px;font-weight:500;letter-spacing:.08em;font-size:12px;border-bottom:2px solid transparent;transition:.15s}
+nav a:hover{color:var(--t)}nav a.on{color:var(--a);border-color:var(--a)}
+.conn{margin-left:auto;display:flex;gap:8px}.pill{font-size:10px;padding:3px 8px;border:1px solid var(--l);color:var(--m)}.pill.ok{color:var(--a);border-color:#9dff5766}.pill.bad{color:var(--r);border-color:#ff5d5d66}
+main{padding:24px;max-width:1280px;margin:auto}h2{margin:0 0 4px;letter-spacing:.1em;font-size:16px}.sub{color:var(--m);margin:0 0 16px;font-size:12px}
+.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+button,select,input{background:var(--p);color:var(--t);border:1px solid var(--l);padding:7px 12px;font:inherit;font-size:12px;cursor:pointer;transition:.15s}
+button:hover,select:hover{border-color:var(--a)}button.on,button.pri{border-color:var(--a);color:var(--a)}
+.box{background:var(--p);border:1px solid var(--l);overflow-x:auto}table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--m);font-size:10px;letter-spacing:.14em;padding:10px 12px;border-bottom:1px solid var(--l);font-weight:500}
+td{padding:9px 12px;border-bottom:1px solid #0f1a0f;font-size:12px;white-space:nowrap}tr:hover td{background:var(--p2)}
+.buy{color:var(--a)}.sell{color:var(--r)}a.l{color:var(--a);text-decoration:none;cursor:pointer}
+.empty{padding:48px;text-align:center;color:var(--m);line-height:1.7}.empty b{color:var(--t)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:16px}.k{background:var(--p);border:1px solid var(--l);padding:12px}.k small{color:var(--m);display:block;font-size:10px;letter-spacing:.12em}.k div{font-size:18px;margin-top:4px}
+.fresh{color:var(--m);font-size:11px;margin-top:8px}.note{border-left:2px solid var(--a);padding:8px 12px;background:var(--p);color:var(--m);font-size:12px;margin-bottom:12px}
+.flash{animation:f 1.2s}@keyframes f{from{background:#9dff5722}}
+</style></head><body>
+<header><div class="brand"><b>LAST PLAYS</b><small>THE PUMP.FUN TRENCHES TERMINAL</small></div>
+<nav id="nav"></nav><div class="conn" id="conn"></div></header><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ROUTES=[['feed','LAST PLAYS'],['callers','BIGGEST CALLERS'],['wallets','TOP WALLETS'],['token','TOKEN INTEL'],['watchlist','WATCHLIST'],['profile','PROFILE']];
+const short=a=>a?a.slice(0,4)+'…'+a.slice(-4):'—',n=(v,d=2)=>v==null?'n/a':Number(v).toLocaleString(undefined,{maximumFractionDigits:d}),pct=v=>v==null?'n/a':(v>0?'+':'')+n(v,1)+'%';
+const ago=t=>{const s=(Date.now()-new Date(t))/1e3;return s<60?~~s+'s ago':s<3600?~~(s/60)+'m ago':s<86400?~~(s/3600)+'h ago':~~(s/86400)+'d ago'};
+const copy=t=>navigator.clipboard.writeText(t);
+let sb=null,session=null,chan=null,cfg={},timer=null;
+const CFGOK=()=>window.CFG&&window.CFG.supabaseUrl&&window.CFG.supabaseAnonKey;
+const B58=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/,PER=['24h','7d','30d'];
+const ck=r=>{if(r.error)throw Object.assign(new Error(r.error.message),{status:500});return r.data};
+const bad=(m,s=400)=>{throw Object.assign(new Error(m),{status:s})};
+const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);const u=new URL(p,'http://x'),q=u.searchParams,path=u.pathname,m=o.method||'GET',now=new Date().toISOString(),lim=Math.min(Math.max(+q.get('limit')||50,1),100);
+ if(path==='/status'){const rows=ck(await sb.from('ingestion_state').select('source,last_run_at,last_status,last_error'));return{database:true,pumpfun:rows.some(r=>r.source.startsWith('pumpfun')&&r.last_status==='ok'),helius:rows.some(r=>r.source==='helius'),ingestion:rows}}
+ if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd)').order('block_time',{ascending:false}).limit(lim);if(['buy','sell'].includes(q.get('side')))s=s.eq('side',q.get('side'));if(+q.get('minSol'))s=s.gte('sol_amount',+q.get('minSol'));return{events:ck(await s),fetchedAt:now}}
+ if(path==='/callers'){const per=['24h','7d','30d','all'].includes(q.get('period'))?q.get('period'):'24h',col={avg:'avg_return_pct',best:'best_call_pct',calls:'total_calls',median:'median_return_pct'}[q.get('sort')]||'avg_return_pct';return{period:per,callers:ck(await sb.from('caller_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim)),fetchedAt:now}}
+ if(path==='/wallets'){const per=PER.includes(q.get('period'))?q.get('period'):'24h',col={realized:'realized_pnl',combined:'combined_pnl',positions:'positions'}[q.get('sort')]||'combined_pnl';return{period:per,wallets:ck(await sb.from('wallet_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim)),fetchedAt:now}}
+ if(path.startsWith('/wallet/')){const a=path.slice(8);if(!B58.test(a))bad('invalid_address');const[perf,trades]=await Promise.all([sb.from('wallet_performance').select('*').eq('wallet',a),sb.from('trades').select('signature,side,sol_amount,block_time,tokens(mint,symbol,name)').eq('wallet',a).order('block_time',{ascending:false}).limit(50)]);let pf=null;try{const r=await fetch(window.CFG.supabaseUrl+'/functions/v1/ingest?wallet='+a,{headers:{apikey:window.CFG.supabaseAnonKey}});if(r.ok)pf=await r.json()}catch{}return{address:a,performance:ck(perf),trades:ck(trades),portfolio:pf,portfolioAvailable:!!pf}}
+ if(path.startsWith('/token/')){const mt=path.slice(7);if(!B58.test(mt))bad('invalid_mint');const[t,tr,c]=await Promise.all([sb.from('tokens').select('*').eq('mint',mt).maybeSingle(),sb.from('trades').select('signature,side,sol_amount,wallet,block_time').eq('mint',mt).order('block_time',{ascending:false}).limit(50),sb.from('public_callouts').select('id,caller,called_at,status,max_upside_pct').eq('mint',mt).order('called_at',{ascending:false}).limit(20)]);
+  if(!ck(t))bad('token_not_found',404);const w={};ck(tr).forEach(x=>w[x.wallet]=(w[x.wallet]||0)+Number(x.sol_amount));return{token:t.data,trades:tr.data,callouts:ck(c),topWallets:Object.entries(w).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([wallet,sol_volume])=>({wallet,sol_volume}))}}
+ if(path.startsWith('/watchlist')){if(!session)bad('unauthorized',401);
+  if(m==='GET')return ck(await sb.from('watchlists').select('*').order('created_at',{ascending:false}));
+  if(m==='POST'){const{kind,ref}=JSON.parse(o.body);if(!['wallet','caller','token','callout'].includes(kind)||typeof ref!=='string'||ref.length>100)bad('invalid_input');ck(await sb.from('watchlists').upsert({user_id:session.user.id,kind,ref},{onConflict:'user_id,kind,ref',ignoreDuplicates:true}));return{ok:true}}
+  if(m==='DELETE'){ck(await sb.from('watchlists').delete().eq('id',path.split('/')[2]).eq('user_id',session.user.id));return{ok:true}}}
+ if(path==='/topcalls')return ck(await sb.from('public_callouts').select('id,caller,called_at,entry_market_cap_usd,max_upside_pct,hit_2x,hit_5x,hit_10x,tokens(mint,symbol,name)').neq('status','incomplete').not('max_upside_pct','is',null).order('max_upside_pct',{ascending:false}).limit(20));
+ if(path==='/positions')return ck(await sb.from('largest_positions').select('*').order('net_sol',{ascending:false}).limit(lim));
+ if(path==='/early')return ck(await sb.from('early_entries').select('*').order('block_time',{ascending:false}).limit(lim));
+ if(path==='/active')return ck(await sb.rpc('most_active',{p_days:+q.get('days')||1}));
+ if(path.startsWith('/callout/')){const id=path.slice(9);if(!/^[0-9a-f-]{36}$/i.test(id))bad('invalid_id');const d=await sb.from('public_callouts').select('*,tokens(*),call_snapshots(*)').eq('id',id).maybeSingle();if(!d.data)bad('not_found',404);return d.data}
+ bad('not_found',404)};
+const empty=(m)=>`<div class="empty"><b>NO LIVE DATA</b><br>${m}</div>`;
+const fresh=t=>`<div class="fresh">Data fetched ${t?ago(t):'—'} · source: Supabase (ingested by Edge Function)</div>`;
+function cleanup(){clearInterval(timer);if(chan&&sb){sb.removeChannel(chan);chan=null}}
+function subscribe(table,cb){if(!sb)return;chan=sb.channel('rt-'+table).on('postgres_changes',{event:'INSERT',schema:'public',table},cb).subscribe()}
+async function status(){try{const s=await api('/status');$('#conn').innerHTML=[['DB',s.database],['PUMP.FUN',s.pumpfun],['HELIUS',s.helius]].map(([k,v])=>`<span class="pill ${v?'ok':'bad'}">${k} ${v?'CONNECTED':'NOT CONFIGURED'}</span>`).join('');return s}catch{$('#conn').innerHTML='<span class="pill bad">BACKEND OFFLINE</span>'}}
+const tokLink=t=>t?`<a class="l" href="#token/${esc(t.mint)}">${esc(t.symbol||t.name||short(t.mint))}</a>`:'—';
+const gen=x=>{const a=Array.isArray(x)?x:(x&&(x.data||x.positions||x.holdings))||[];if(!Array.isArray(a)||!a.length)return empty('Empty portfolio.');const k=Object.keys(a[0]).filter(c=>typeof a[0][c]!=='object').slice(0,7);return `<table><tr>${k.map(c=>`<th>${esc(c.toUpperCase())}</th>`).join('')}</tr>${a.slice(0,50).map(r=>`<tr>${k.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</table>`};
+const caBtn=m=>`<button onclick="copy('${esc(m)}');this.textContent='COPIED'">COPY CA</button>`;
+const star=(kind,ref)=>`<button title="Follow" onclick="follow('${kind}','${esc(ref)}',this)">☆</button>`;
+async function follow(kind,ref,b){if(!session)return alert('Connect Phantom in PROFILE to use the watchlist.');try{await api('/watchlist',{method:'POST',body:JSON.stringify({kind,ref})});b.textContent='★'}catch(e){alert('Could not save: '+e.message)}}
+
+const V={
+async feed(){let side='',min=0;
+ const draw=async(live)=>{const d=await api(`/feed?limit=60${side?'&side='+side:''}${min?'&minSol='+min:''}`);const ev=d.events;
+  $('#list').innerHTML=ev.length?`<table><tr><th>TIME</th><th>TOKEN</th><th>CA</th><th>MCAP</th><th>SIDE</th><th>SOL</th><th>WALLET</th><th>SOURCE</th><th></th></tr>${ev.map((e,i)=>`<tr class="${live&&i==0?'flash':''}"><td>${ago(e.block_time)}</td><td>${tokLink(e.tokens)}</td><td>${short(e.tokens?.mint)}</td><td>${e.tokens?.market_cap_usd!=null?'$'+n(e.tokens.market_cap_usd,0):'n/a'}</td><td class="${e.side}">${e.side.toUpperCase()}</td><td>${n(e.sol_amount)}</td><td><a class="l" href="#wallet/${esc(e.wallet)}">${short(e.wallet)}</a></td><td>${esc(e.source)}</td><td>${star('wallet',e.wallet)}</td></tr>`).join('')}</table>`:empty('No trades ingested yet. Deploy the <span class="mono">ingest</span> Edge Function and connect Helius / Pump.fun — see README.');
+  $('#fr').innerHTML=fresh(d.fetchedAt)};
+ $('#app').innerHTML=`<h2>LAST PLAYS</h2><p class="sub">Live Pump.fun activity — launches, large buys and sells, as ingested.</p><div class="bar"><select id="sd"><option value="">ALL</option><option value="buy">BUYS</option><option value="sell">SELLS</option></select><select id="mn"><option value="0">ANY SIZE</option><option value="1">≥ 1 SOL</option><option value="5">≥ 5 SOL</option><option value="20">≥ 20 SOL</option></select></div><div class="box" id="list"></div><div id="fr"></div>`;
+ $('#sd').onchange=e=>{side=e.target.value;draw()};$('#mn').onchange=e=>{min=e.target.value;draw()};
+ await draw();let t=0;subscribe('trades',()=>{if(Date.now()-t>2000){t=Date.now();draw(true)}});timer=setInterval(draw,30000)},
+async callers(){let period='24h',sort='avg';
+ const draw=async()=>{const d=await api(`/callers?period=${period}&sort=${sort}`);
+  $('#list').innerHTML=d.callers.length?`<table><tr><th>#</th><th>CALLER</th><th>CALLS</th><th>W</th><th>L</th><th>AVG</th><th>MEDIAN</th><th>BEST</th><th>WORST</th><th></th></tr>${d.callers.map((c,i)=>`<tr><td>${i+1}</td><td><a class="l" href="#caller/${esc(c.caller)}">${esc(short(c.caller))}</a></td><td>${c.total_calls}</td><td class="buy">${c.wins}</td><td class="sell">${c.losses}</td><td>${pct(c.avg_return_pct)}</td><td>${pct(c.median_return_pct)}</td><td>${pct(c.best_call_pct)}</td><td>${pct(c.worst_call_pct)}</td><td>${star('caller',c.caller)}</td></tr>`).join('')}</table>`:empty('No verified callout performance yet. Calls without a verified timestamp and entry market cap are excluded.');
+  $('#fr').innerHTML=fresh(d.fetchedAt)};
+ $('#app').innerHTML=`<h2>BIGGEST CALLERS</h2><p class="sub">Public callout performance, tracked from the verified call time.</p><div class="note">Caller performance is NOT wallet trading PnL. They are tracked separately.</div><div class="bar">${['24h','7d','30d','all'].map(p=>`<button data-p="${p}" class="${p==period?'on':''}">${p.toUpperCase()}</button>`).join('')}<select id="so"><option value="avg">AVG RETURN</option><option value="best">BEST CALL</option><option value="median">MOST CONSISTENT (MEDIAN)</option><option value="calls">MOST CALLS</option></select></div><div class="box" id="list"></div><div id="fr"></div><h2 style="margin-top:24px">MOST SUCCESSFUL CALLS</h2><p class="sub">Highest verified max upside since the call.</p><div class="box" id="top"></div>`;
+ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{period=b.dataset.p;document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('on',x==b));draw()});$('#so').onchange=e=>{sort=e.target.value;draw()};
+ await draw();subscribe('caller_performance',()=>draw());
+ const tc=await api('/topcalls');$('#top').innerHTML=tc.length?`<table><tr><th>TOKEN</th><th>CALLER</th><th>ENTRY MCAP</th><th>MAX UPSIDE</th><th>2X</th><th>5X</th><th>10X</th><th></th></tr>${tc.map(c=>`<tr><td>${tokLink(c.tokens)}</td><td><a class="l" href="#caller/${esc(c.caller)}">${short(c.caller)}</a></td><td>${c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'n/a'}</td><td class="buy">${pct(c.max_upside_pct)}</td><td>${c.hit_2x?'✔':'–'}</td><td>${c.hit_5x?'✔':'–'}</td><td>${c.hit_10x?'✔':'–'}</td><td><a class="l" href="#callout/${c.id}">DETAIL</a></td></tr>`).join('')}</table>`:empty('No verified calls with tracked performance yet.')},
+async caller(id){const d=await api('/callers?period=all&limit=100');const c=d.callers.find(x=>x.caller===id);
+ $('#app').innerHTML=`<h2>CALLER ${esc(short(id))}</h2><p class="sub mono">${esc(id)}</p><div class="note">Public callout stats only (not wallet PnL).</div>`+(c?`<div class="grid">${[['TOTAL CALLS',c.total_calls],['WINS',c.wins],['LOSSES',c.losses],['AVG RETURN',pct(c.avg_return_pct)],['MEDIAN',pct(c.median_return_pct)],['BEST',pct(c.best_call_pct)],['WORST',pct(c.worst_call_pct)]].map(([a,b])=>`<div class="k"><small>${a}</small><div>${b}</div></div>`).join('')}</div>`:empty('No verified stats for this caller.'))},
+async wallets(){let mode='pnl',period='24h',sort='combined';
+ const tabs=[['pnl','PNL'],['positions','LARGEST POSITIONS'],['early','EARLY ENTRIES'],['active','MOST ACTIVE']],days={'24h':1,'7d':7,'30d':30};
+ const tbl=(h,r)=>r.length?`<table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${r.join('')}</table>`:empty('No data yet.');
+ const W=a=>`<a class="l" href="#wallet/${esc(a)}">${short(a)}</a>`,T=m=>`<a class="l" href="#token/${esc(m)}">${short(m)}</a>`;
+ const draw=async()=>{let html='',note='';
+  if(mode==='pnl'){const d=await api(`/wallets?period=${period}&sort=${sort}`);html=tbl(['#','WALLET','REALIZED','UNREALIZED','COMBINED','POSITIONS','ORIGIN',''],d.wallets.map((w,i)=>`<tr><td>${i+1}</td><td>${W(w.wallet)}</td><td>${n(w.realized_pnl)}</td><td>${n(w.unrealized_pnl)}</td><td>${n(w.combined_pnl)}</td><td>${w.positions??'n/a'}</td><td>${w.metric_origin==='api'?'VERIFIED API':'CALCULATED'}</td><td>${star('wallet',w.wallet)}</td></tr>`));note='Verified Pump.fun leaderboard data.'}
+  else if(mode==='positions'){const d=await api('/positions?limit=50');html=tbl(['WALLET','TOKEN','NET SOL','TRADES','LAST'],d.map(x=>`<tr><td>${W(x.wallet)}</td><td>${T(x.mint)}</td><td>${n(x.net_sol)}</td><td>${x.trades}</td><td>${ago(x.last_trade)}</td></tr>`));note='CALCULATED from trades ingested by LAST PLAYS (SOL bought minus sold). Not verified PnL.'}
+  else if(mode==='early'){const d=await api('/early?limit=50');html=tbl(['WALLET','TOKEN','SOL','AFTER FIRST SEEN','WHEN'],d.map(x=>`<tr><td>${W(x.wallet)}</td><td>${T(x.mint)}</td><td>${n(x.sol_amount)}</td><td>${x.secs_after_first_seen}s</td><td>${ago(x.block_time)}</td></tr>`));note='CALCULATED: first 10 buyers per token, timed from the first trade LAST PLAYS saw (not necessarily the token launch).'}
+  else{const d=await api('/active?days='+days[period]);html=tbl(['#','WALLET','TRADES','SOL VOLUME'],d.map((x,i)=>`<tr><td>${i+1}</td><td>${W(x.wallet)}</td><td>${x.trades}</td><td>${n(x.sol_volume)}</td></tr>`));note='CALCULATED from ingested trades.'}
+  $('#bar').innerHTML=tabs.map(([m,l])=>`<button data-m="${m}" class="${m==mode?'on':''}">${l}</button>`).join('')+' | '+(['positions','early'].includes(mode)?'':['24h','7d','30d'].map(p=>`<button data-p="${p}" class="${p==period?'on':''}">${p.toUpperCase()}</button>`).join(''))+(mode==='pnl'?`<select id="so"><option value="combined">COMBINED PNL</option><option value="realized">REALIZED PNL</option><option value="positions">POSITIONS</option></select>`:'');
+  if(mode==='pnl')$('#so').value=sort;
+  $('#bar').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.m)mode=b.dataset.m;else period=b.dataset.p;draw()});if($('#so'))$('#so').onchange=e=>{sort=e.target.value;draw()};
+  $('#list').innerHTML=html;$('#fr').innerHTML=`<div class="note" style="margin-top:12px">${note}</div>`+fresh(new Date().toISOString())};
+ $('#app').innerHTML=`<h2>TOP WALLETS</h2><p class="sub">Verified API data and calculated metrics are labeled.</p><div class="bar" id="bar"></div><div class="box" id="list"></div><div id="fr"></div>`;await draw()},
+async wallet(a){const d=await api('/wallet/'+a);
+ $('#app').innerHTML=`<h2>WALLET ${short(a)}</h2><p class="sub mono">${esc(a)} ${star('wallet',a)}</p><div class="grid">${['24h','7d','30d'].map(p=>{const x=d.performance.find(r=>r.period===p);return `<div class="k"><small>${p.toUpperCase()} COMBINED PNL</small><div>${x?n(x.combined_pnl):'n/a'}</div><small>R ${x?n(x.realized_pnl):'n/a'} · U ${x?n(x.unrealized_pnl):'n/a'}</small></div>`}).join('')}</div>${d.portfolioAvailable?'<div class="note">Portfolio · Pump.fun API (as returned)</div><div class="box">'+gen(d.portfolio)+'</div><br>':'<div class="note">Portfolio unavailable (Pump.fun wallet endpoint not configured).</div>'}<div class="box">${d.trades.length?`<table><tr><th>TIME</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>${d.trades.map(t=>`<tr><td>${ago(t.block_time)}</td><td>${tokLink(t.tokens)}</td><td class="${t.side}">${t.side.toUpperCase()}</td><td>${n(t.sol_amount)}</td></tr>`).join('')}</table>`:empty('No trades recorded for this wallet.')}</div>`},
+async token(m){
+ if(!m){$('#app').innerHTML=`<h2>TOKEN INTEL</h2><p class="sub">Open any token from the feed, or paste a CA.</p><div class="bar"><input id="ca" placeholder="Token CA" style="width:420px"><button class="pri" onclick="location.hash='token/'+$('#ca').value.trim()">OPEN</button></div>`;return}
+ const d=await api('/token/'+m),t=d.token;
+ $('#app').innerHTML=`<h2>${esc(t.name||'Unknown')} <span class="buy">${esc(t.symbol||'')}</span></h2><p class="sub mono">${esc(t.mint)} ${caBtn(t.mint)} ${star('token',t.mint)}</p><div class="grid">${[['MARKET CAP',t.market_cap_usd],['PRICE',t.price_usd],['VOLUME 24H',t.volume_24h_usd],['LIQUIDITY',t.liquidity_usd]].map(([a,b])=>`<div class="k"><small>${a}</small><div>${b!=null?'$'+n(b,6):'n/a'}</div></div>`).join('')}</div>
+ <div class="note">Community activity (social data) is not available from the connected sources. Flow below is calculated from trades ingested by LAST PLAYS: ${d.trades.filter(x=>x.side==='buy').length} buys / ${d.trades.filter(x=>x.side==='sell').length} sells in the last ${d.trades.length} trades.</div><h2>PUBLIC CALLS</h2><div class="box">${d.callouts.length?`<table><tr><th>CALLER</th><th>WHEN</th><th>STATUS</th><th>MAX UPSIDE</th></tr>${d.callouts.map(c=>`<tr><td><a class="l" href="#caller/${esc(c.caller)}">${short(c.caller)}</a></td><td><a class="l" href="#callout/${c.id}">${c.called_at?ago(c.called_at):'unverified'}</a></td><td>${c.status}</td><td>${pct(c.max_upside_pct)}</td></tr>`).join('')}</table>`:empty('No public calls recorded.')}</div>
+ <h2 style="margin-top:20px">TOP ASSOCIATED WALLETS</h2><div class="box">${d.topWallets.length?`<table><tr><th>WALLET</th><th>SOL VOLUME</th></tr>${d.topWallets.map(w=>`<tr><td><a class="l" href="#wallet/${esc(w.wallet)}">${short(w.wallet)}</a></td><td>${n(w.sol_volume)}</td></tr>`).join('')}</table>`:empty('No trades recorded.')}</div>
+ <h2 style="margin-top:20px">RECENT TRADES</h2><div class="box">${d.trades.length?`<table><tr><th>TIME</th><th>SIDE</th><th>SOL</th><th>WALLET</th></tr>${d.trades.map(x=>`<tr><td>${ago(x.block_time)}</td><td class="${x.side}">${x.side.toUpperCase()}</td><td>${n(x.sol_amount)}</td><td>${short(x.wallet)}</td></tr>`).join('')}</table>`:empty('No trades recorded.')}</div>`},
+async callout(id){const c=await api('/callout/'+id),s=Object.fromEntries((c.call_snapshots||[]).map(x=>[x.interval_label,x]));
+ $('#app').innerHTML=`<h2>CALL · ${esc(c.tokens?.symbol||short(c.mint))}</h2><p class="sub mono">caller ${esc(c.caller)} · ${c.called_at?ago(c.called_at):'unverified time'} ${star('callout',c.id)}</p>${c.status==='incomplete'?'<div class="note">INCOMPLETE: the original call time or entry price could not be verified, so no performance is shown.</div>':''}<div class="grid">${[['ENTRY MCAP',c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'n/a'],['MAX UPSIDE',pct(c.max_upside_pct)],['MAX DRAWDOWN',pct(c.max_drawdown_pct)],['2X / 5X / 10X',[c.hit_2x,c.hit_5x,c.hit_10x].map(b=>b?'✔':'–').join(' ')]].map(([a,b])=>`<div class="k"><small>${a}</small><div>${b}</div></div>`).join('')}</div><div class="box"><table><tr><th>INTERVAL</th><th>MCAP</th><th>RETURN</th></tr>${['5m','15m','1h','6h','24h','7d'].map(i=>`<tr><td>${i}</td><td>${s[i]?'$'+n(s[i].market_cap_usd,0):'not captured yet'}</td><td>${s[i]?pct(s[i].return_pct):'n/a'}</td></tr>`).join('')}</table></div><p class="fresh">Token <a class="l" href="#token/${esc(c.mint)}">${short(c.mint)}</a></p>`},
+async watchlist(){
+ if(!session){$('#app').innerHTML=`<h2>WATCHLIST</h2>${empty('Connect Phantom in PROFILE to follow wallets, callers and tokens.')}`;return}
+ const w=await api('/watchlist');$('#app').innerHTML=`<h2>WATCHLIST</h2><p class="sub">Your followed wallets, callers and tokens.</p><div class="box">${w.length?`<table><tr><th>TYPE</th><th>REF</th><th></th></tr>${w.map(x=>`<tr><td>${x.kind}</td><td><a class="l" href="#${x.kind==='callout'?'feed':x.kind}/${esc(x.ref)}">${esc(short(x.ref))}</a></td><td><button onclick="api('/watchlist/${x.id}',{method:'DELETE'}).then(()=>route())">REMOVE</button></td></tr>`).join('')}</table>`:empty('Nothing followed yet. Use ☆ anywhere.')}</div><h2 style="margin-top:20px">NOTIFICATIONS</h2><div class="box" id="nt">${empty('No notifications.')}</div>`;
+ if(sb){const {data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(30);if(data?.length)$('#nt').innerHTML=`<table>${data.map(x=>`<tr><td>${ago(x.created_at)}</td><td>${esc(x.title)}</td><td>${esc(x.body||'')}</td></tr>`).join('')}</table>`;
+  chan=sb.channel('rt-notif').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},()=>route()).subscribe()}},
+async profile(){
+ if(!sb){$('#app').innerHTML=`<h2>PROFILE</h2>${empty('Supabase is not configured: edit the 2 lines at the top of this file.')}`;return}
+ if(session){const u=session.user,ad=u.identities?.[0]?.identity_data?.custom_claims?.address||u.user_metadata?.custom_claims?.address||'wallet connected';
+  $('#app').innerHTML=`<h2>PROFILE</h2><p class="sub mono">${esc(ad)}</p><button onclick="sb.auth.signOut()">DISCONNECT</button>`}
+ else{$('#app').innerHTML=`<h2>PROFILE</h2><p class="sub">Connect your Phantom wallet to follow wallets, callers and tokens.</p><button class="pri" id="go">CONNECT PHANTOM</button><p class="fresh" id="er"></p>`;
+  $('#go').onclick=async()=>{const p=window.phantom?.solana||window.solana;if(!p?.isPhantom){window.open('https://phantom.app/','_blank');return}
+   $('#er').textContent='Approve the signature in Phantom…';
+   const {error}=await sb.auth.signInWithWeb3({chain:'solana',statement:'Sign in to LAST PLAYS. Free, no transaction, no funds moved.',wallet:p});
+   $('#er').textContent=error?error.message:''}}}
+};
+async function route(){cleanup();const [k,...r]=(location.hash.slice(1)||'feed').split('/'),arg=decodeURIComponent(r.join('/'));
+ const nav=k==='caller'||k==='callout'?'callers':k==='wallet'?'wallets':k;$('#nav').innerHTML=ROUTES.map(([h,l])=>`<a href="#${h}" class="${h===nav?'on':''}">${l}</a>`).join('');
+ try{await (V[k]||V.feed)(arg)}catch(e){$('#app').innerHTML=`<div class="box">${empty(e.status===503?'Database not configured on the server. See README.':e.status===404?'Not found.':'Request failed: '+esc(e.message))}</div>`}}
+(async()=>{cfg=window.CFG||{};
+ if(cfg.supabaseUrl&&cfg.supabaseAnonKey){sb=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data}=await sb.auth.getSession();session=data.session;
+  sb.auth.onAuthStateChange((_,s)=>{session=s;route()})}
+ status();setInterval(status,60000);addEventListener('hashchange',route);route()})();
+</script></body></html>
