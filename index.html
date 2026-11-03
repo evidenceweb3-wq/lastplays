@@ -1,127 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KOL Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module">
-        import { createPhantom } from 'https://cdn.jsdelivr.net/npm/@phantom/browser-injected-sdk@latest/+esm';
-        import { createSolanaPlugin } from 'https://cdn.jsdelivr.net/npm/@phantom/browser-injected-sdk@latest/solana/+esm';
-
-        // --- Configuration ---
-        const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        const HELIUS_API_KEY = 'fa7e6515-19de-45de-a7d1-35a64a0d9a1a';
-
-        // --- Initialize Clients ---
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const phantom = createPhantom({ plugins: [createSolanaPlugin()] });
-
-        // --- DOM Elements ---
-        const connectBtn = document.getElementById('connect-wallet');
-        const userAddressEl = document.getElementById('user-address');
-        const kolListEl = document.getElementById('kol-list');
-
-        // --- Auth Logic ---
-        async function connectWallet() {
-            try {
-                const { address } = await phantom.solana.connect();
-                console.log('Connected to Phantom:', address);
-                userAddressEl.textContent = `Connected: ${address}`;
-
-                // Here you would typically sync this with Supabase.
-                // For simplicity, we're just showing the connection.
-                // In a real app, you might use supabase.auth.signInWithWeb3()
-                // or store the address in a user profile after an email sign-up.
-                
-                // Example: Save the wallet address to local storage for the session
-                localStorage.setItem('walletAddress', address);
-                loadKOLs(); // Load data after connecting
-
-            } catch (error) {
-                console.error('Phantom connection failed:', error);
-            }
-        }
-
-        connectBtn.addEventListener('click', connectWallet);
-
-        // --- Data Fetching Examples ---
-
-        // Example: Fetch token data from DexScreener
-        async function fetchDexScreenerData(tokenAddress) {
-            const url = `https://api.dexscreener.com/latest/dex/tokens/solana/${tokenAddress}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                console.log('DexScreener Data:', data);
-                // Process pairs, price, liquidity, etc. here
-                return data;
-            } catch (error) {
-                console.error('DexScreener fetch error:', error);
-            }
-        }
-
-        // Example: Fetch a wallet's transaction history from Helius
-        async function fetchHeliusTxHistory(walletAddress) {
-            const url = `https://api.helius.xyz/v0/addresses/${walletAddress}/transactions?api-key=${HELIUS_API_KEY}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                console.log('Helius Tx History:', data);
-                // This returns parsed, human-readable transactions
-                return data;
-            } catch (error) {
-                console.error('Helius fetch error:', error);
-            }
-        }
-
-        // Example: Fetch Pump.fun data (via a third-party provider is required)
-        // This is a placeholder. You would need to integrate with Bitquery, Moralis, etc.
-        async function fetchPumpFunData(tokenMint) {
-            console.warn('Pump.fun does not have a direct public API. Use Bitquery or Moralis.');
-            // See the Bitquery GraphQL example in the notes for the kind of query you'd run.
-        }
-
-        // --- KOL Management (Supabase) ---
-        async function loadKOLs() {
-            const { data, error } = await supabase.from('kols').select('*, kol_wallets(*)');
-            if (error) {
-                console.error('Error loading KOLs:', error);
-                return;
-            }
-            console.log('KOLs from Supabase:', data);
-            // Render the KOL list in the UI
-            renderKOLs(data);
-        }
-
-        function renderKOLs(kols) {
-            kolListEl.innerHTML = '';
-            if (!kols) return;
-            kols.forEach(kol => {
-                const li = document.createElement('li');
-                li.textContent = `${kol.name} - Wallets: ${kol.kol_wallets.map(w => w.wallet_address).join(', ')}`;
-                kolListEl.appendChild(li);
-            });
-        }
-
-        // --- Initialization ---
-        // Check if already connected on page load
-        window.addEventListener('load', async () => {
-            const savedAddress = localStorage.getItem('walletAddress');
-            if (savedAddress) {
-                userAddressEl.textContent = `Connected: ${savedAddress}`;
-                loadKOLs();
-            }
-        });
-    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KOL Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{color-scheme:dark}
+  body{font:14px/1.55 system-ui,-apple-system,sans-serif;max-width:960px;margin:24px auto;padding:0 16px;background:#0d1117;color:#e6edf3}
+  h1{margin:0 0 4px} h2{margin:24px 0 8px;font-size:15px;color:#8b949e;text-transform:uppercase;letter-spacing:.05em}
+  button{background:#238636;color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+  button:hover{background:#2ea043} button.ghost{background:#21262d} button.ghost:hover{background:#30363d}
+  button.tiny{padding:3px 8px;font-size:12px}
+  input{background:#010409;border:1px solid #30363d;color:#e6edf3;padding:8px 10px;border-radius:8px;font:inherit}
+  input:focus{outline:none;border-color:#1f6feb}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 14px;margin:8px 0}
+  .muted{color:#8b949e;font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .pill{background:#1f2937;color:#7dd3fc;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:600}
+  .pill.ok{background:#0d2818;color:#3fb950}
+  .pill.err{background:#2d1214;color:#f85149}
+  code{font:12px ui-monospace,monospace;color:#79c0ff;word-break:break-all}
+  #log{background:#1a0d0d;border:1px solid #6b1b1b;border-radius:8px;padding:10px;font:12px ui-monospace,monospace;color:#ff9b9b;max-height:200px;overflow:auto;white-space:pre-wrap;margin:12px 0}
+  .empty{color:#8b949e;font-style:italic;padding:16px;text-align:center}
+</style>
 </head>
 <body>
-    <h1>KOL Tracker</h1>
-    <button id="connect-wallet">Connect Phantom Wallet</button>
-    <p id="user-address">Not connected</p>
 
-    <h2>Tracked KOLs</h2>
-    <ul id="kol-list"></ul>
+<h1>KOL Tracker</h1>
+<p class="muted">Phantom login · Supabase storage · Helius tx history · DexScreener prices</p>
+
+<div id="log" hidden></div>
+
+<div class="row">
+  <button id="connectBtn">Connect Phantom</button>
+  <span id="who" class="muted">Not connected</span>
+  <span id="mode" class="pill">…</span>
+</div>
+
+<h2>Add KOL</h2>
+<form id="kolForm" class="row">
+  <input id="kolName" placeholder="KOL name" required />
+  <input id="kolWallet" placeholder="Solana wallet address" size="46" required />
+  <button type="submit">Add</button>
+</form>
+
+<h2>Tracked KOLs</h2>
+<div id="kols"><div class="empty">Loading…</div></div>
+
+<h2>Token lookup · DexScreener</h2>
+<div class="row">
+  <input id="mint" placeholder="Token mint address" size="46" />
+  <button id="lookupBtn" class="ghost">Look up</button>
+</div>
+<div id="tokenOut"></div>
+
+<script type="module">
+/* =========================================================
+   CONFIG  — note: no /rest/v1/ on the URL
+   ========================================================= */
+const CFG = {
+  SUPABASE_URL: 'https://jhdatgmduljewlzsslfa.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_xDgvsSrwzCDiIXdP6PpGzQ_SldVwqzv',
+  HELIUS_KEY:   'fa7e6515-19de-45de-a7d1-35a64a0d9a1a'
+};
+
+/* =========================================================
+   LOGGER — surface errors on screen instead of dying silently
+   ========================================================= */
+const logEl = document.getElementById('log');
+function logErr(where, e) {
+  logEl.hidden = false;
+  const msg = e?.message || e?.error_description || String(e);
+  logEl.textContent += `[${where}] ${msg}\n`;
+  console.error('[' + where + ']', e);
+}
+window.addEventListener('error', e => logErr('window', e.error || e.message));
+window.addEventListener('unhandledrejection', e => logErr('promise', e.reason));
+
+/* =========================================================
+   SUPABASE  — the UMD global is `window.supabase`, so do
+   NOT redeclare a top-level `const supabase` (that shadows it)
+   ========================================================= */
+let sb = null;
+const modeEl = document.getElementById('mode');
+try {
+  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  modeEl.textContent = 'supabase';
+  modeEl.className = 'pill ok';
+} catch (e) {
+  logErr('supabase init', e);
+  modeEl.textContent = 'local';
+  modeEl.className = 'pill err';
+}
+
+/* =========================================================
+   LOCAL FALLBACK  — if Supabase insert/select fails, we keep
+   working so you can still test the UI
+   ========================================================= */
+const LS_KEY = 'kol_tracker_kols_v2';
+const local = {
+  read:  () => JSON.parse(localStorage.getItem(LS_KEY) || '[]'),
+  write: rows => localStorage.setItem(LS_KEY, JSON.stringify(rows))
+};
+
+async function listKols() {
+  if (!sb) throw new Error('no supabase client');
+  const { data, error } = await sb
+    .from('kols')
+    .select('id,name,owner_wallet,created_at,kol_wallets(wallet_address)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+async function addKol(name, wallet, ownerWallet) {
+  if (!sb) throw new Error('no supabase client');
+  const { data: kol, error: e1 } = await sb
+    .from('kols')
+    .insert({ name, owner_wallet: ownerWallet || null })
+    .select('id')
+    .single();
+  if (e1) throw e1;
+  const { error: e2 } = await sb
+    .from('kol_wallets')
+    .insert({ kol_id: kol.id, wallet_address: wallet });
+  if (e2) throw e2;
+}
+
+/* =========================================================
+   PHANTOM  — provider is injected; no SDK package needed
+   ========================================================= */
+const provider = window.phantom?.solana ?? window.solana;
+const whoEl = document.getElementById('who');
+let currentWallet = null;
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  try {
+    if (!provider) {
+      throw new Error('Phantom not detected. Install the extension or open in Phantom\'s in-app browser.');
+    }
+    const res = await provider.connect();     // { publicKey } — NOT { address }
+    currentWallet = res.publicKey.toString();
+    localStorage.setItem('walletAddress', currentWallet);
+    whoEl.textContent = `Connected: ${currentWallet.slice(0,4)}…${currentWallet.slice(-4)}`;
+    if (provider.on) {
+      provider.on('disconnect', () => {
+        currentWallet = null;
+        localStorage.removeItem('walletAddress');
+        whoEl.textContent = 'Not connected';
+      });
+    }
+  } catch (e) { logErr('phantom connect', e); }
+});
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+const kolsEl = document.getElementById('kols');
+
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  Object.assign(n, props);
+  kids.forEach(k => n.append(k));
+  return n;
+}
+
+async function refresh() {
+  kolsEl.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const rows = await listKols();
+    kolsEl.innerHTML = '';
+    if (!rows.length) {
+      kolsEl.append(el('div', { className: 'empty' }, 'No KOLs yet — add one above.'));
+      return;
+    }
+    rows.forEach(k => {
+      const wallets = (k.kol_wallets || []).map(w => w.wallet_address);
+      const card = el('div', { className: 'card' });
+      const head = el('div', { className: 'row' });
+      head.append(el('strong', {}, k.name));
+      if (k.owner_wallet) {
+        head.append(el('span', { className: 'muted' },
+          `by ${k.owner_wallet.slice(0,4)}…${k.owner_wallet.slice(-4)}`));
+      }
+      card.append(head);
+      wallets.forEach(w => {
+        const line = el('div', { className: 'row' });
+        line.append(el('code', {}, w));
+        const b = el('button', { className: 'ghost tiny', textContent: 'Recent txs' });
+        b.onclick = () => showTxs(w, card);
+        line.append(b);
+        card.append(line);
+      });
+      kolsEl.append(card);
+    });
+  } catch (e) {
+    logErr('load KOLs', e);
+    kolsEl.innerHTML = '';
+    kolsEl.append(el('div', { className: 'empty' },
+      'Supabase query failed — see log above. Check that you ran the SQL and that RLS allows anon.'));
+  }
+}
+
+document.getElementById('kolForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const name   = document.getElementById('kolName').value.trim();
+  const wallet = document.getElementById('kolWallet').value.trim();
+  if (!name || !wallet) return;
+  try {
+    await addKol(name, wallet, currentWallet);
+    ev.target.reset();
+    refresh();
+  } catch (e) { logErr('add KOL', e); }
+});
+
+/* =========================================================
+   HELIUS  — parsed tx history for a wallet
+   ========================================================= */
+async function showTxs(wallet, host) {
+  const box = el('div', { className: 'muted' }, 'Fetching…');
+  host.append(box);
+  try {
+    const url = `https://api.helius.xyz/v0/addresses/${wallet}/transactions?api-key=${CFG.HELIUS_KEY}&limit=10`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`Helius HTTP ${r.status} — ${(await r.text()).slice(0,120)}`);
+    const txs = await r.json();
+    box.textContent = '';
+    if (!txs.length) { box.textContent = 'No transactions.'; return; }
+    txs.forEach(t => {
+      const line = el('div', { className: 'card' });
+      line.append(el('div', {}, t.description || t.type || '(no description)'));
+      line.append(el('div', { className: 'muted' },
+        new Date((t.timestamp || 0) * 1000).toLocaleString()));
+      box.append(line);
+    });
+  } catch (e) {
+    box.textContent = 'Helius fetch failed — see log.';
+    logErr('helius', e);
+  }
+}
+
+/* =========================================================
+   DEXSCREENER  — correct route: /latest/dex/tokens/{mint}
+   ========================================================= */
+document.getElementById('lookupBtn').addEventListener('click', async () => {
+  const mint = document.getElementById('mint').value.trim();
+  const out  = document.getElementById('tokenOut');
+  out.innerHTML = '';
+  if (!mint) return;
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+    if (!r.ok) throw new Error(`DexScreener HTTP ${r.status}`);
+    const data  = await r.json();
+    const pairs = (data.pairs || []).filter(p => p.chainId === 'solana');
+    if (!pairs.length) { out.textContent = 'No Solana pairs found for that mint.'; return; }
+    pairs.slice(0, 5).forEach(p => {
+      out.append(el('div', { className: 'card' },
+        el('div', {}, el('strong', {}, `${p.baseToken.symbol}/${p.quoteToken.symbol}`), ` · ${p.dexId}`),
+        el('div', {}, `$${p.priceUsd ?? '–'}  ·  24h ${p.priceChange?.h24 ?? '–'}%`),
+        el('div', { className: 'muted' },
+          `Liq $${Math.round(p.liquidity?.usd || 0).toLocaleString()}  ·  ` +
+          `Vol24h $${Math.round(p.volume?.h24 || 0).toLocaleString()}`)
+      ));
+    });
+  } catch (e) {
+    logErr('dexscreener', e);
+    out.textContent = 'Lookup failed — see log.';
+  }
+});
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+const saved = localStorage.getItem('walletAddress');
+if (saved) {
+  currentWallet = saved;
+  whoEl.textContent = `Connected: ${saved.slice(0,4)}…${saved.slice(-4)}`;
+}
+refresh();
+</script>
 </body>
 </html>
