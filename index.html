@@ -305,6 +305,7 @@ const proxyImg = (url) => {
   let u = String(url).trim();
   if (u.startsWith('ipfs://')) u = 'https://ipfs.io/ipfs/' + u.slice(7);
   if (u.startsWith('ar://')) u = 'https://arweave.net/' + u.slice(5);
+  // Use wsrv.nl proxy to bypass hotlink protection and convert to webp for speed
   return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=200&h=200&fit=cover&output=webp`;
 };
 
@@ -318,7 +319,8 @@ const tokenAvatar=(t,size=24)=>{
   const url=proxyImg(t?.image_url);
   
   const letterEl=`<span class="letter" style="font-size:${font}px;background:${bg};position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${esc(letter)}</span>`;
-  const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:'';
+  // Added onload to hide the letter only when image successfully loads
+  const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.style.display='block'" style="display:none" onerror="this.style.display='none'">`:'';
   
   return `<div class="token-avatar" style="width:${s}px;height:${s}px">${letterEl}${imgEl}</div>`;
 };
@@ -332,7 +334,7 @@ const walletAvatar=(wallet,profile,size=28)=>{
   const url=proxyImg(kol?.avatar_url || profile?.avatar_url);
   
   const letterEl=`<span class="letter" style="font-size:${font}px;background:${bg};position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono)">${esc(letter)}</span>`;
-  const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:'';
+  const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.style.display='block'" style="display:none" onerror="this.style.display='none'">`:'';
   
   return `<div class="wallet-avatar" style="width:${s}px;height:${s}px">${letterEl}${imgEl}</div>`;
 };
