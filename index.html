@@ -3,7 +3,10 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script>
 /* ====== EDITA SOLO ESTAS 2 LÍNEAS (Supabase > Project Settings > API) ====== */
-window.CFG = { supabaseUrl: "https://TU-PROYECTO.supabase.co", supabaseAnonKey: "TU_ANON_KEY" };
+window.CFG = {
+  supabaseUrl: "https://zcohhpxpbsxwghopkzcb.supabase.co",
+  supabaseAnonKey: "sb_publishable_TXMRIy897kkZzWLG36kS9g_2ZouUrrW"
+};
 /* ======================================================================== */
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.56.0/dist/umd/supabase.min.js"></script>
@@ -42,6 +45,19 @@ const CFGOK=()=>window.CFG&&window.CFG.supabaseUrl&&window.CFG.supabaseAnonKey;
 const B58=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/,PER=['24h','7d','30d'];
 const ck=r=>{if(r.error)throw Object.assign(new Error(r.error.message),{status:500});return r.data};
 const bad=(m,s=400)=>{throw Object.assign(new Error(m),{status:s})};
+
+/* ─────────── NATIVE WALLET SESSION ─────────── */
+function setWallet(w){
+  session = w ? { user: { id: w, wallet: w } } : null;
+  if(w) localStorage.setItem('lp_wallet', w); else localStorage.removeItem('lp_wallet');
+  route();
+}
+async function disconnectWallet(){
+  const p = window.phantom?.solana || window.solana;
+  try{ if(p?.disconnect) await p.disconnect() }catch{}
+  setWallet(null);
+}
+
 const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);const u=new URL(p,'http://x'),q=u.searchParams,path=u.pathname,m=o.method||'GET',now=new Date().toISOString(),lim=Math.min(Math.max(+q.get('limit')||50,1),100);
  if(path==='/status'){const rows=ck(await sb.from('ingestion_state').select('source,last_run_at,last_status,last_error'));return{database:true,pumpfun:rows.some(r=>r.source.startsWith('pumpfun')&&r.last_status==='ok'),helius:rows.some(r=>r.source==='helius'),ingestion:rows}}
  if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd)').order('block_time',{ascending:false}).limit(lim);if(['buy','sell'].includes(q.get('side')))s=s.eq('side',q.get('side'));if(+q.get('minSol'))s=s.gte('sol_amount',+q.get('minSol'));return{events:ck(await s),fetchedAt:now}}
@@ -51,7 +67,7 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);const u=new 
  if(path.startsWith('/token/')){const mt=path.slice(7);if(!B58.test(mt))bad('invalid_mint');const[t,tr,c]=await Promise.all([sb.from('tokens').select('*').eq('mint',mt).maybeSingle(),sb.from('trades').select('signature,side,sol_amount,wallet,block_time').eq('mint',mt).order('block_time',{ascending:false}).limit(50),sb.from('public_callouts').select('id,caller,called_at,status,max_upside_pct').eq('mint',mt).order('called_at',{ascending:false}).limit(20)]);
   if(!ck(t))bad('token_not_found',404);const w={};ck(tr).forEach(x=>w[x.wallet]=(w[x.wallet]||0)+Number(x.sol_amount));return{token:t.data,trades:tr.data,callouts:ck(c),topWallets:Object.entries(w).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([wallet,sol_volume])=>({wallet,sol_volume}))}}
  if(path.startsWith('/watchlist')){if(!session)bad('unauthorized',401);
-  if(m==='GET')return ck(await sb.from('watchlists').select('*').order('created_at',{ascending:false}));
+  if(m==='GET')return ck(await sb.from('watchlists').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}));
   if(m==='POST'){const{kind,ref}=JSON.parse(o.body);if(!['wallet','caller','token','callout'].includes(kind)||typeof ref!=='string'||ref.length>100)bad('invalid_input');ck(await sb.from('watchlists').upsert({user_id:session.user.id,kind,ref},{onConflict:'user_id,kind,ref',ignoreDuplicates:true}));return{ok:true}}
   if(m==='DELETE'){ck(await sb.from('watchlists').delete().eq('id',path.split('/')[2]).eq('user_id',session.user.id));return{ok:true}}}
  if(path==='/topcalls')return ck(await sb.from('public_callouts').select('id,caller,called_at,entry_market_cap_usd,max_upside_pct,hit_2x,hit_5x,hit_10x,tokens(mint,symbol,name)').neq('status','incomplete').not('max_upside_pct','is',null).order('max_upside_pct',{ascending:false}).limit(20));
@@ -103,8 +119,67 @@ async wallets(){let mode='pnl',period='24h',sort='combined';
   $('#bar').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.m)mode=b.dataset.m;else period=b.dataset.p;draw()});if($('#so'))$('#so').onchange=e=>{sort=e.target.value;draw()};
   $('#list').innerHTML=html;$('#fr').innerHTML=`<div class="note" style="margin-top:12px">${note}</div>`+fresh(new Date().toISOString())};
  $('#app').innerHTML=`<h2>TOP WALLETS</h2><p class="sub">Verified API data and calculated metrics are labeled.</p><div class="bar" id="bar"></div><div class="box" id="list"></div><div id="fr"></div>`;await draw()},
-async wallet(a){const d=await api('/wallet/'+a);
- $('#app').innerHTML=`<h2>WALLET ${short(a)}</h2><p class="sub mono">${esc(a)} ${star('wallet',a)}</p><div class="grid">${['24h','7d','30d'].map(p=>{const x=d.performance.find(r=>r.period===p);return `<div class="k"><small>${p.toUpperCase()} COMBINED PNL</small><div>${x?n(x.combined_pnl):'n/a'}</div><small>R ${x?n(x.realized_pnl):'n/a'} · U ${x?n(x.unrealized_pnl):'n/a'}</small></div>`}).join('')}</div>${d.portfolioAvailable?'<div class="note">Portfolio · Pump.fun API (as returned)</div><div class="box">'+gen(d.portfolio)+'</div><br>':'<div class="note">Portfolio unavailable (Pump.fun wallet endpoint not configured).</div>'}<div class="box">${d.trades.length?`<table><tr><th>TIME</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>${d.trades.map(t=>`<tr><td>${ago(t.block_time)}</td><td>${tokLink(t.tokens)}</td><td class="${t.side}">${t.side.toUpperCase()}</td><td>${n(t.sol_amount)}</td></tr>`).join('')}</table>`:empty('No trades recorded for this wallet.')}</div>`},
+
+async wallet(a){
+  const d = await api('/wallet/' + a);
+
+  // Fallback portfolio: computed from trades already loaded (never fails)
+  let fallback = [];
+  if (!d.portfolioAvailable) {
+    const acc = {};
+    for (const t of d.trades) {
+      const k = t.tokens?.mint;
+      if (!k) continue;
+      if (!acc[k]) acc[k] = {
+        mint: k,
+        symbol: t.tokens?.symbol ?? null,
+        name:   t.tokens?.name   ?? null,
+        bought: 0, sold: 0, trades: 0,
+      };
+      if (t.side === 'buy') acc[k].bought += Number(t.sol_amount);
+      else                  acc[k].sold   += Number(t.sol_amount);
+      acc[k].trades++;
+    }
+    fallback = Object.values(acc)
+      .map(p => ({ ...p, net_sol: +(p.bought - p.sold).toFixed(6) }))
+      .filter(p => p.net_sol > 0)
+      .sort((a, b) => b.net_sol - a.net_sol);
+  }
+
+  const port  = d.portfolioAvailable ? (d.portfolio?.data || []) : fallback;
+  const label = d.portfolioAvailable
+    ? 'Portfolio · computed from your trades (full history)'
+    : 'Portfolio · computed locally from last 50 trades';
+
+  $('#app').innerHTML = `
+    <h2>WALLET ${short(a)}</h2>
+    <p class="sub mono">${esc(a)} ${star('wallet', a)}</p>
+    <div class="grid">
+      ${['24h','7d','30d'].map(p => {
+        const x = d.performance.find(r => r.period === p);
+        return `<div class="k">
+          <small>${p.toUpperCase()} COMBINED PNL</small>
+          <div>${x ? n(x.combined_pnl) : 'n/a'}</div>
+          <small>R ${x ? n(x.realized_pnl) : 'n/a'} · U ${x ? n(x.unrealized_pnl) : 'n/a'}</small>
+        </div>`;
+      }).join('')}
+    </div>
+    ${port.length
+      ? `<div class="note">${label}</div><div class="box">${gen(port)}</div><br>`
+      : '<div class="note">No open positions for this wallet.</div>'}
+    <div class="box">
+      ${d.trades.length
+        ? `<table><tr><th>TIME</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>
+           ${d.trades.map(t => `<tr>
+             <td>${ago(t.block_time)}</td>
+             <td>${tokLink(t.tokens)}</td>
+             <td class="${t.side}">${t.side.toUpperCase()}</td>
+             <td>${n(t.sol_amount)}</td>
+           </tr>`).join('')}</table>`
+        : empty('No trades recorded for this wallet.')}
+    </div>`;
+},
+
 async token(m){
  if(!m){$('#app').innerHTML=`<h2>TOKEN INTEL</h2><p class="sub">Open any token from the feed, or paste a CA.</p><div class="bar"><input id="ca" placeholder="Token CA" style="width:420px"><button class="pri" onclick="location.hash='token/'+$('#ca').value.trim()">OPEN</button></div>`;return}
  const d=await api('/token/'+m),t=d.token;
@@ -117,23 +192,51 @@ async callout(id){const c=await api('/callout/'+id),s=Object.fromEntries((c.call
 async watchlist(){
  if(!session){$('#app').innerHTML=`<h2>WATCHLIST</h2>${empty('Connect Phantom in PROFILE to follow wallets, callers and tokens.')}`;return}
  const w=await api('/watchlist');$('#app').innerHTML=`<h2>WATCHLIST</h2><p class="sub">Your followed wallets, callers and tokens.</p><div class="box">${w.length?`<table><tr><th>TYPE</th><th>REF</th><th></th></tr>${w.map(x=>`<tr><td>${x.kind}</td><td><a class="l" href="#${x.kind==='callout'?'feed':x.kind}/${esc(x.ref)}">${esc(short(x.ref))}</a></td><td><button onclick="api('/watchlist/${x.id}',{method:'DELETE'}).then(()=>route())">REMOVE</button></td></tr>`).join('')}</table>`:empty('Nothing followed yet. Use ☆ anywhere.')}</div><h2 style="margin-top:20px">NOTIFICATIONS</h2><div class="box" id="nt">${empty('No notifications.')}</div>`;
- if(sb){const {data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(30);if(data?.length)$('#nt').innerHTML=`<table>${data.map(x=>`<tr><td>${ago(x.created_at)}</td><td>${esc(x.title)}</td><td>${esc(x.body||'')}</td></tr>`).join('')}</table>`;
+ if(sb){const {data}=await sb.from('notifications').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(30);if(data?.length)$('#nt').innerHTML=`<table>${data.map(x=>`<tr><td>${ago(x.created_at)}</td><td>${esc(x.title)}</td><td>${esc(x.body||'')}</td></tr>`).join('')}</table>`;
   chan=sb.channel('rt-notif').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},()=>route()).subscribe()}},
 async profile(){
  if(!sb){$('#app').innerHTML=`<h2>PROFILE</h2>${empty('Supabase is not configured: edit the 2 lines at the top of this file.')}`;return}
- if(session){const u=session.user,ad=u.identities?.[0]?.identity_data?.custom_claims?.address||u.user_metadata?.custom_claims?.address||'wallet connected';
-  $('#app').innerHTML=`<h2>PROFILE</h2><p class="sub mono">${esc(ad)}</p><button onclick="sb.auth.signOut()">DISCONNECT</button>`}
- else{$('#app').innerHTML=`<h2>PROFILE</h2><p class="sub">Connect your Phantom wallet to follow wallets, callers and tokens.</p><button class="pri" id="go">CONNECT PHANTOM</button><p class="fresh" id="er"></p>`;
-  $('#go').onclick=async()=>{const p=window.phantom?.solana||window.solana;if(!p?.isPhantom){window.open('https://phantom.app/','_blank');return}
-   $('#er').textContent='Approve the signature in Phantom…';
-   const {error}=await sb.auth.signInWithWeb3({chain:'solana',statement:'Sign in to LAST PLAYS. Free, no transaction, no funds moved.',wallet:p});
-   $('#er').textContent=error?error.message:''}}}
+ if(session){
+  $('#app').innerHTML=`<h2>PROFILE</h2>
+   <p class="sub">Native Phantom session — no Supabase auth, no signature.</p>
+   <div class="grid">
+     <div class="k"><small>WALLET ADDRESS</small><div class="mono" style="font-size:11px;word-break:break-all">${esc(session.user.id)}</div></div>
+   </div>
+   <div class="bar">
+     <button id="cp">COPY WALLET</button>
+     <button onclick="disconnectWallet()">DISCONNECT</button>
+     <a class="l" href="#watchlist"><button>OPEN WATCHLIST</button></a>
+   </div>`;
+  $('#cp').onclick = function(){ copy(session.user.id); this.textContent='COPIED'; setTimeout(()=>this.textContent='COPY WALLET',1200) };
+ } else {
+  $('#app').innerHTML=`<h2>PROFILE</h2>
+   <p class="sub">Connect your Phantom wallet to follow wallets, callers and tokens.</p>
+   <button class="pri" id="go">CONNECT PHANTOM</button>
+   <p class="fresh" id="er"></p>`;
+  $('#go').onclick = async () => {
+    const p = window.phantom?.solana || window.solana;
+    if(!p?.isPhantom){ window.open('https://phantom.app/','_blank'); return }
+    try{
+      $('#er').textContent = 'Approve the connection in Phantom…';
+      const resp = await p.connect();
+      const wallet = resp.publicKey.toString();
+      if(!B58.test(wallet)) throw new Error('Invalid wallet address returned');
+      setWallet(wallet);
+    }catch(e){ $('#er').textContent = e.message || 'Connection failed' }
+  };
+ }
+}
 };
 async function route(){cleanup();const [k,...r]=(location.hash.slice(1)||'feed').split('/'),arg=decodeURIComponent(r.join('/'));
  const nav=k==='caller'||k==='callout'?'callers':k==='wallet'?'wallets':k;$('#nav').innerHTML=ROUTES.map(([h,l])=>`<a href="#${h}" class="${h===nav?'on':''}">${l}</a>`).join('');
  try{await (V[k]||V.feed)(arg)}catch(e){$('#app').innerHTML=`<div class="box">${empty(e.status===503?'Database not configured on the server. See README.':e.status===404?'Not found.':'Request failed: '+esc(e.message))}</div>`}}
-(async()=>{cfg=window.CFG||{};
- if(cfg.supabaseUrl&&cfg.supabaseAnonKey){sb=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data}=await sb.auth.getSession();session=data.session;
-  sb.auth.onAuthStateChange((_,s)=>{session=s;route()})}
- status();setInterval(status,60000);addEventListener('hashchange',route);route()})();
+(async()=>{
+ cfg=window.CFG||{};
+ if(cfg.supabaseUrl&&cfg.supabaseAnonKey){
+   sb=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+   const saved = localStorage.getItem('lp_wallet');
+   if(saved && B58.test(saved)) session = { user: { id: saved, wallet: saved } };
+ }
+ status();setInterval(status,60000);addEventListener('hashchange',route);route()
+})();
 </script></body></html>
