@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LAST PLAYS · KOL Alpha Terminal</title>
+<title>LAST PLAYS · Ultimate KOL Terminal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
@@ -177,6 +177,7 @@ tr.flash td{animation:flash 1.5s ease-out}
   transition:all .2s;position:relative;overflow:hidden;
 }
 .alpha-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(157,255,87,.12);border-color:var(--green)}
+.alpha-card.kol-card:hover{border-color:var(--purple);box-shadow:0 16px 40px rgba(153,69,255,.15)}
 .alpha-card .head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
 .alpha-card .meta{flex:1;min-width:0}
 .alpha-card .sym{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.02em;
@@ -208,6 +209,7 @@ tr.flash td{animation:flash 1.5s ease-out}
 }
 .token-avatar img,.wallet-avatar img{
   width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;
+  background:var(--panel); /* Prevents flashing */
 }
 .token-cell{display:inline-flex;align-items:center;gap:10px;vertical-align:middle;text-decoration:none}
 .token-cell:hover{opacity:.9}
@@ -258,7 +260,7 @@ tr.flash td{animation:flash 1.5s ease-out}
 <header>
   <div class="brand">
     <b>LAST PLAYS</b>
-    <small>KOL ALPHA TERMINAL · PUMP.FUN</small>
+    <small>ULTIMATE KOL TERMINAL · PUMP.FUN</small>
   </div>
   <nav id="nav"></nav>
   <div class="conn" id="conn"></div>
@@ -270,10 +272,10 @@ tr.flash td{animation:flash 1.5s ease-out}
 <div class="modal" id="admin-modal">
   <div class="modal-box">
     <h3>ADD NEW KOL</h3>
-    <p class="sub">Only visible to you. Track their wallet and show their avatar to users.</p>
+    <p class="sub">Track their wallet and show their real avatar to users.</p>
     <input type="text" id="kol-name" placeholder="KOL Name (e.g. Cupsey)">
     <input type="text" id="kol-wallet" placeholder="Solana Wallet Address">
-    <input type="text" id="kol-avatar" placeholder="Avatar Image URL">
+    <input type="text" id="kol-avatar" placeholder="Avatar Image URL (optional)">
     <button class="pri" onclick="saveKOL()">SAVE KOL</button>
     <button style="margin-top:8px" onclick="document.getElementById('admin-modal').classList.remove('show')">CANCEL</button>
   </div>
@@ -281,7 +283,7 @@ tr.flash td{animation:flash 1.5s ease-out}
 
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ROUTES=[['alpha','◉ ALPHA'],['feed','FEED'],['kols','◈ KOLs'],['token','TOKEN'],['watchlist','WATCH'],['profile','PROFILE']];
+const ROUTES=[['alpha','◉ ALPHA'],['kols','◈ KOLs'],['feed','FEED'],['token','TOKEN'],['watchlist','WATCH'],['profile','PROFILE']];
 const short=a=>a?a.slice(0,4)+'…'+a.slice(-4):'—';
 const n=(v,d=2)=>v==null?'n/a':Number(v).toLocaleString(undefined,{maximumFractionDigits:d});
 const pct=v=>v==null?'n/a':(v>0?'+':'')+n(v,1)+'%';
@@ -296,11 +298,16 @@ const B58=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const ck=r=>{if(r.error)throw Object.assign(new Error(r.error.message),{status:500});return r.data};
 const bad=(m,s=400)=>{throw Object.assign(new Error(m),{status:s})};
 
-/* ─── AVATAR ─── */
-const ipfsToHttp=u=>{if(!u)return null;const s=String(u).trim();if(!s)return null;
-  if(s.startsWith('ipfs://'))return 'https://ipfs.io/ipfs/'+s.slice(7);
-  if(s.startsWith('ar://'))return 'https://arweave.net/'+s.slice(5);
-  return s};
+/* ─── BULLETPROOF IMAGE HANDLING ─── */
+// We use wsrv.nl to proxy images and bypass Pump.fun's CORS/Hotlink blocks
+const proxyImg = (url) => {
+  if (!url) return null;
+  let u = String(url).trim();
+  if (u.startsWith('ipfs://')) u = 'https://ipfs.io/ipfs/' + u.slice(7);
+  if (u.startsWith('ar://')) u = 'https://arweave.net/' + u.slice(5);
+  return `https://wsrv.nl/?url=${encodeURIComponent(u)}&w=200&h=200&fit=cover&output=webp`;
+};
+
 const hashHue=str=>{let h=0;const s=String(str||'x');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)%360};
 const gradFor=str=>{const h=hashHue(str);return `linear-gradient(135deg,hsl(${h},55%,45%),hsl(${(h+45)%360},55%,28%))`};
 
@@ -308,9 +315,11 @@ const tokenAvatar=(t,size=24)=>{
   const s=size,font=Math.round(s*0.45);
   const mint=t?.mint||'',sym=t?.symbol||t?.name||'',letter=((sym||mint||'?')[0]||'?').toUpperCase();
   const bg=gradFor(mint||sym);
-  const url=ipfsToHttp(t?.image_url);
+  const url=proxyImg(t?.image_url);
+  
   const letterEl=`<span class="letter" style="font-size:${font}px;background:${bg};position:absolute;inset:0;display:flex;align-items:center;justify-content:center">${esc(letter)}</span>`;
   const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:'';
+  
   return `<div class="token-avatar" style="width:${s}px;height:${s}px">${letterEl}${imgEl}</div>`;
 };
 
@@ -320,9 +329,11 @@ const walletAvatar=(wallet,profile,size=28)=>{
   const kol=kolsCache.get(w);
   const letter=(w.slice(0,2)||'?').toUpperCase();
   const bg=gradFor('wallet-'+w);
-  const url=ipfsToHttp(kol?.avatar_url || profile?.avatar_url);
+  const url=proxyImg(kol?.avatar_url || profile?.avatar_url);
+  
   const letterEl=`<span class="letter" style="font-size:${font}px;background:${bg};position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono)">${esc(letter)}</span>`;
   const imgEl=url?`<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:'';
+  
   return `<div class="wallet-avatar" style="width:${s}px;height:${s}px">${letterEl}${imgEl}</div>`;
 };
 
@@ -385,20 +396,22 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
    return{database:true,pumpfun:rows.some(r=>r.source.startsWith('pumpfun')&&r.last_status==='ok'),
      helius:rows.some(r=>r.source==='helius'),ingestion:rows}}
      
- if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd,image_url)').order('block_time',{ascending:false}).limit(lim);
+ // ONLY FETCH PUMPFUN TRADES
+ if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd,image_url)').eq('source','pumpfun').order('block_time',{ascending:false}).limit(lim);
    if(['buy','sell'].includes(q.get('side')))s=s.eq('side',q.get('side'));
    if(+q.get('minSol'))s=s.gte('sol_amount',+q.get('minSol'));
    return{events:ck(await s),fetchedAt:now}}
 
+ // KOL TRADES ONLY
  if(path==='/kol-trades'){const wallets=Array.from(kolsCache.keys());
    if(wallets.length===0)return{events:[],fetchedAt:now};
-   const{data}=await sb.from('trades').select('signature,side,sol_amount,wallet,block_time,tokens(mint,name,symbol,market_cap_usd,image_url)').in('wallet',wallets).order('block_time',{ascending:false}).limit(50);
+   const{data}=await sb.from('trades').select('signature,side,sol_amount,wallet,block_time,tokens(mint,name,symbol,market_cap_usd,image_url)').in('wallet',wallets).eq('source','pumpfun').order('block_time',{ascending:false}).limit(50);
    return{events:data||[],fetchedAt:now}}
 
  if(path.startsWith('/wallet/')){const a=path.slice(8);if(!B58.test(a))bad('invalid_address');
    const[perf,trades]=await Promise.all([
      sb.from('wallet_performance').select('*').eq('wallet',a),
-     sb.from('trades').select('signature,side,sol_amount,block_time,tokens(mint,symbol,name,image_url)').eq('wallet',a).order('block_time',{ascending:false}).limit(50)
+     sb.from('trades').select('signature,side,sol_amount,block_time,tokens(mint,symbol,name,image_url)').eq('wallet',a).eq('source','pumpfun').order('block_time',{ascending:false}).limit(50)
    ]);
    let pf=null,profile=null;
    try{const r=await fetch(window.CFG.supabaseUrl+'/functions/v1/ingest?wallet='+a,{headers:{apikey:window.CFG.supabaseAnonKey}});if(r.ok){const j=await r.json();pf=j.data||null;profile=j.profile||null}}catch{}
@@ -408,7 +421,7 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
  if(path.startsWith('/token/')){const mt=path.slice(7);if(!B58.test(mt))bad('invalid_mint');
    const[t,tr,c]=await Promise.all([
      sb.from('tokens').select('*').eq('mint',mt).maybeSingle(),
-     sb.from('trades').select('signature,side,sol_amount,wallet,block_time').eq('mint',mt).order('block_time',{ascending:false}).limit(100),
+     sb.from('trades').select('signature,side,sol_amount,wallet,block_time').eq('mint',mt).eq('source','pumpfun').order('block_time',{ascending:false}).limit(100),
      sb.from('public_callouts').select('id,caller,called_at,status,max_upside_pct').eq('mint',mt).order('called_at',{ascending:false}).limit(20)
    ]);
    if(!ck(t))bad('token_not_found',404);
@@ -451,6 +464,7 @@ async function computeSignals(){
   const cutoff=new Date(Date.now()-12*3600*1000).toISOString(); // 12 hours
   const {data:trades,error}=await sb.from('trades')
     .select('mint,wallet,side,sol_amount,block_time,tokens(mint,symbol,name,market_cap_usd,image_url)')
+    .eq('source','pumpfun')
     .gte('block_time',cutoff).order('block_time',{ascending:false}).limit(2000);
   if(error)throw error;
   
@@ -486,12 +500,12 @@ async function computeSignals(){
     const age_hrs=(now-tk.first_seen)/3600000;
     const fresh=age_hrs<0.5?3:age_hrs<2?2:age_hrs<6?1.5:1;
     
-    // Score: KOL buys are 10x more valuable
+    // Score: KOL buys are the ultimate signal
     let score=Math.log10(tk.total_sol+1)*15 + buy_ratio*25 + Math.min(tk.wallets.size,30) + (tk.kol_buys*100) + (tk.smart_buys*50) + Math.log10(tk.vol_5m+1)*10;
     score*=fresh;
     
-    // Filters: Remove dead/dumped tokens
-    const isDead = tk.total_sol < 1 || tk.mcap === 0 || tk.sell_sol > tk.buy_sol * 3; // Massive dump
+    // Filter out absolute dead rugs (mcap 0 or 0 volume or massive dumps)
+    const isDead = tk.total_sol < 0.5 || tk.mcap === 0 || tk.sell_sol > tk.buy_sol * 3;
     
     return{...tk,buy_ratio,net_sol,age_hrs,fresh,score,wallets_count:tk.wallets.size,isDead};
   }).filter(tk=>!tk.isDead && tk.mcap != null).sort((a,b)=>b.score-a.score);
@@ -590,13 +604,13 @@ async alpha(){
     ${warnBanner(lastStatus)}
     
     <h2>👑 KOL ALPHA PLAYS</h2>
-    <p class="sub">Tokens bought by your tracked KOLs in the last 12 hours.</p>
+    <p class="sub">Tokens actively bought by your tracked KOLs. Highest probability setups.</p>
     
     ${kolPlays.length===0?actionCard('👑','NO KOL BUYS YET',
-      'None of your tracked KOLs have bought a token recently.',
-      ['Check their specific wallets in <code>#kols</code>','Maybe they are just holding and not trading right now']):
+      'None of your tracked KOLs have bought a token in the last 12 hours.',
+      ['Check their specific wallets in <code>#kols</code> to see their recent activity','They might just be holding right now']):
     `<div class="alpha-grid">${kolPlays.slice(0,6).map(t=>`
-      <div class="alpha-card" onclick="location.hash='token/${esc(t.mint)}'" style="border-color:var(--purple);box-shadow:0 0 20px rgba(153,69,255,.1)">
+      <div class="alpha-card kol-card" onclick="location.hash='token/${esc(t.mint)}'">
         <div class="head">
           ${tokenAvatar(t,52)}
           <div class="meta">
@@ -605,7 +619,7 @@ async alpha(){
           </div>
           <div class="score">
             <div class="score-val" style="color:#d4b3ff">${Math.round(t.score)}</div>
-            <span class="badge smart">◆ KOL PLAY</span>
+            <span class="badge kol">👑 KOL PLAY</span>
           </div>
         </div>
         <div class="stat-row">
@@ -616,8 +630,8 @@ async alpha(){
         </div>
       </div>`).join('')}</div>`}
 
-    <h2 style="margin-top:32px">🔍 OTHER OPPORTUNITIES</h2>
-    <p class="sub">High volume tokens without KOL activity yet.</p>
+    <h2 style="margin-top:32px">🔍 SUGGESTED TRADES (Volume & Flow)</h2>
+    <p class="sub">High-volume tokens without KOL activity yet.</p>
     ${otherPlays.length===0?empty('No other tokens are popping off right now.',{icon:'📡'}):
     `<div class="alpha-grid">${otherPlays.slice(0,6).map(t=>`
       <div class="alpha-card" onclick="location.hash='token/${esc(t.mint)}'">
@@ -639,6 +653,58 @@ async alpha(){
           <div><div class="lbl">NET FLOW</div><div class="val ${t.net_sol>0?'buy':'sell'}">${(t.net_sol>0?'+':'')+n(t.net_sol,1)} SOL</div></div>
         </div>
       </div>`).join('')}</div>`}`;
+},
+
+async kols(){
+  await getKOLs();
+  const list=Array.from(kolsCache.values());
+  
+  if(list.length===0){
+    $('#app').innerHTML=`
+      <h2>◈ TRACKED KOLs</h2>
+      ${actionCard('👤','NO KOLs ADDED', 'No KOLs are being tracked yet.', ['Click the + ADMIN button in the top right','Enter their Wallet, Name, and Avatar URL'])}`;
+    return;
+  }
+
+  const d = await api('/kol-trades');
+  const kolTrades = d.events;
+
+  $('#app').innerHTML=`
+    <h2>◈ TRACKED KOLs</h2>
+    <p class="sub">Your Key Opinion Leaders and their real-time activity.</p>
+    
+    <div class="alpha-grid">${list.map(k=>`
+      <div class="alpha-card" onclick="location.hash='wallet/${esc(k.wallet)}'">
+        <div class="head">
+          ${walletAvatar(k.wallet,null,52)}
+          <div class="meta">
+            <div class="sym">${esc(k.name)}</div>
+            <div class="mint">${short(k.wallet)}</div>
+          </div>
+          <div class="score">
+            <span class="badge kol">👑 KOL</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <h2 style="margin-top:32px">KOL LIVE ACTIVITY</h2>
+    <p class="sub">Every trade executed by your tracked KOLs on Pump.fun.</p>
+    
+    <div class="box">
+      ${kolTrades.length===0?empty('Your KOLs have not made any Pump.fun trades recently.',{icon:'📭'}):`
+      <table>
+        <tr><th>TIME</th><th>KOL</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>
+        ${kolTrades.map(e=>`
+          <tr>
+            <td>${ago(e.block_time)}</td>
+            <td>${walletCell(e.wallet,null,24)}</td>
+            <td>${tokenCell(e.tokens,24)}</td>
+            <td class="${e.side}">${e.side.toUpperCase()}</td>
+            <td><b>${n(e.sol_amount)}</b></td>
+          </tr>`).join('')}
+      </table>`}
+    </div>`;
 },
 
 async feed(){
@@ -685,61 +751,6 @@ async feed(){
   let t=0;
   subscribe('trades',()=>{if(Date.now()-t>2000){t=Date.now();draw(true)}});
   timer=setInterval(draw,30000);
-},
-
-async kols(){
-  await getKOLs();
-  const list=Array.from(kolsCache.values());
-  
-  if(list.length===0){
-    $('#app').innerHTML=`
-      <h2>◈ TRACKED KOLs</h2>
-      ${actionCard('👤','NO KOLs ADDED', 'No KOLs are being tracked yet.', ['Click the + ADMIN button in the top right','Enter their Wallet, Name, and Avatar URL'])}`;
-    return;
-  }
-
-  // Fetch latest trades for these KOLs
-  const d = await api('/kol-trades');
-  const kolTrades = d.events;
-
-  $('#app').innerHTML=`
-    <h2>◈ TRACKED KOLs</h2>
-    <p class="sub">Key Opinion Leaders whose every move is tracked.</p>
-    
-    <div class="alpha-grid">${list.map(k=>`
-      <div class="alpha-card" onclick="location.hash='wallet/${esc(k.wallet)}'">
-        <div class="head">
-          ${walletAvatar(k.wallet,null,52)}
-          <div class="meta">
-            <div class="sym">${esc(k.name)}</div>
-            <div class="mint">${short(k.wallet)}</div>
-          </div>
-          <div class="score">
-            <span class="badge kol">👑 KOL</span>
-          </div>
-        </div>
-      </div>`).join('')}
-    </div>
-
-    <h2 style="margin-top:32px">KOL LIVE ACTIVITY</h2>
-    <p class="sub">Latest trades executed by your tracked KOLs.</p>
-    
-    <div class="box">
-      ${kolTrades.length===0?empty('Your KOLs have not made any trades recently.',{icon:'📭'}):`
-      <table>
-        <tr><th>TIME</th><th>KOL</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>
-        ${kolTrades.map(e=>{
-          const k = kolsCache.get(e.wallet);
-          return `<tr>
-            <td>${ago(e.block_time)}</td>
-            <td>${walletCell(e.wallet,null,24)}</td>
-            <td>${tokenCell(e.tokens,24)}</td>
-            <td class="${e.side}">${e.side.toUpperCase()}</td>
-            <td><b>${n(e.sol_amount)}</b></td>
-          </tr>`;
-        }).join('')}
-      </table>`}
-    </div>`;
 },
 
 async wallet(a){
