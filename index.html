@@ -14,7 +14,7 @@ window.CFG = {
   --bg:#04060a;--panel:#0a0f18;--panel-2:#0d1420;--panel-3:#111a28;
   --border:#182030;--border-hi:#25324a;
   --green:#9DFF57;--purple:#9945FF;--teal:#14F195;
-  --text:#e2ebe8;--dim:#7a8a92;--muted:#4e5f6a;
+  --text:#e2ebe8;--dim:#8a9aa2;--muted:#5e6f7a;
   --buy:#14F195;--sell:#FF5470;--warn:#FFB84D;--danger:#FF3D5A;
   --hot:#FF5470;--warm:#FFB84D;--cold:#5a6a75;
   --font:'Space Grotesk',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
@@ -26,7 +26,7 @@ body{
     radial-gradient(circle at 15% 0%,rgba(153,69,255,.10),transparent 45%),
     radial-gradient(circle at 85% 100%,rgba(20,241,149,.07),transparent 50%),
     var(--bg);
-  background-attachment:fixed;color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.5;
+  background-attachment:fixed;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55;
   -webkit-font-smoothing:antialiased;
 }
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -47,15 +47,14 @@ nav a{color:var(--dim);text-decoration:none;padding:7px 14px;font-size:11px;font
 nav a:hover{color:var(--text);background:rgba(255,255,255,.03)}
 nav a.on{color:var(--green);background:rgba(157,255,87,.08);border-color:rgba(157,255,87,.25);box-shadow:0 0 20px rgba(157,255,87,.1)}
 nav a.alpha{color:var(--purple)}
-nav a.alpha.on{color:#fff;background:rgba(153,69,255,.15);border-color:rgba(153,69,255,.4);box-shadow:0 0 20px rgba(153,69,255,.2)}
+nav a.alpha.on{color:#fff;background:rgba(153,69,255,.18);border-color:rgba(153,69,255,.4);box-shadow:0 0 20px rgba(153,69,255,.25)}
 
 .conn{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
   background:rgba(13,20,32,.8);border:1px solid var(--border);border-radius:4px;
   font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;
   text-transform:uppercase;color:var(--dim);transition:all .3s;}
-.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--muted);
-  box-shadow:0 0 0 2px rgba(255,255,255,.05);}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 2px rgba(255,255,255,.05);}
 .pill.ok{color:var(--green);border-color:rgba(157,255,87,.25)}
 .pill.ok::before{background:var(--green);box-shadow:0 0 0 2px rgba(157,255,87,.15),0 0 10px var(--green);animation:pulse 2s ease-in-out infinite}
 .pill.warn{color:var(--warn);border-color:rgba(255,184,77,.25)}
@@ -64,35 +63,35 @@ nav a.alpha.on{color:#fff;background:rgba(153,69,255,.15);border-color:rgba(153,
 .pill.bad::before{background:var(--danger);box-shadow:0 0 8px var(--danger)}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
 
-main{position:relative;z-index:1;padding:24px;max-width:1400px;margin:auto}
+main{position:relative;z-index:1;padding:28px;max-width:1400px;margin:auto}
 h2{margin:0 0 6px;font-size:15px;font-weight:700;letter-spacing:.12em;color:var(--text)}
-.sub{color:var(--dim);margin:0 0 18px;font-size:11.5px;letter-spacing:.03em}
+.sub{color:var(--dim);margin:0 0 20px;font-size:12px;letter-spacing:.02em;line-height:1.55}
 
-.banner{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:4px;font-size:12px;margin-bottom:14px;
-  border-left:3px solid var(--warn);background:rgba(255,184,77,.05);}
-.banner.info{border-color:var(--teal);background:rgba(20,241,149,.05)}
-.banner.danger{border-color:var(--danger);background:rgba(255,61,90,.05)}
-.banner.purple{border-color:var(--purple);background:rgba(153,69,255,.05)}
-.banner b{display:block;margin-bottom:2px;letter-spacing:.06em;font-size:11px;text-transform:uppercase;color:var(--text)}
-.banner .msg{color:var(--dim);line-height:1.5}
+.banner{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:6px;font-size:12.5px;margin-bottom:16px;
+  border-left:3px solid var(--warn);background:rgba(255,184,77,.06);}
+.banner.info{border-color:var(--teal);background:rgba(20,241,149,.06)}
+.banner.danger{border-color:var(--danger);background:rgba(255,61,90,.06)}
+.banner.purple{border-color:var(--purple);background:rgba(153,69,255,.06)}
+.banner b{display:block;margin-bottom:4px;letter-spacing:.06em;font-size:11px;text-transform:uppercase;color:var(--text)}
+.banner .msg{color:var(--dim);line-height:1.6}
+.banner .msg code{background:rgba(255,255,255,.06);color:var(--green);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:11px}
 
-.bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 button,select,input{background:var(--panel-2);color:var(--text);border:1px solid var(--border);
-  padding:7px 12px;font:inherit;font-size:11.5px;font-weight:500;letter-spacing:.03em;
-  cursor:pointer;border-radius:4px;transition:all .15s;font-family:var(--font);}
+  padding:8px 14px;font:inherit;font-size:12px;font-weight:500;letter-spacing:.03em;
+  cursor:pointer;border-radius:5px;transition:all .15s;font-family:var(--font);}
 button:hover,select:hover,input:focus{border-color:var(--green);background:var(--panel-3);outline:none}
 button.on,button.pri{border-color:var(--green);color:var(--green);background:rgba(157,255,87,.08)}
 button.on{box-shadow:0 0 12px rgba(157,255,87,.15)}
 button.pri:hover{background:rgba(157,255,87,.15)}
 
 .box{background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
-  border:1px solid var(--border);border-radius:6px;overflow-x:auto;
+  border:1px solid var(--border);border-radius:8px;overflow-x:auto;
   box-shadow:0 1px 3px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.02);}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;color:var(--dim);font-size:9.5px;letter-spacing:.14em;padding:11px 14px;
-  border-bottom:1px solid var(--border);font-weight:600;text-transform:uppercase;
-  background:rgba(0,0,0,.2);}
-td{padding:10px 14px;border-bottom:1px solid rgba(24,32,48,.6);font-size:12px;white-space:nowrap;color:var(--text)}
+th{text-align:left;color:var(--dim);font-size:10px;letter-spacing:.14em;padding:12px 16px;
+  border-bottom:1px solid var(--border);font-weight:600;text-transform:uppercase;background:rgba(0,0,0,.2);}
+td{padding:12px 16px;border-bottom:1px solid rgba(24,32,48,.6);font-size:13px;white-space:nowrap;color:var(--text);vertical-align:middle}
 tr:hover td{background:rgba(157,255,87,.02)}
 tr:last-child td{border-bottom:none}
 
@@ -101,89 +100,103 @@ tr:last-child td{border-bottom:none}
 a.l{color:var(--green);text-decoration:none;cursor:pointer;transition:opacity .15s}
 a.l:hover{opacity:.75;text-shadow:0 0 8px var(--green)}
 
-.badge{display:inline-block;padding:3px 8px;font-family:var(--mono);font-size:9px;
-  letter-spacing:.08em;border-radius:3px;font-weight:600;text-transform:uppercase;
-  border:1px solid transparent;}
-.badge.hot{background:rgba(255,84,112,.15);color:var(--hot);border-color:rgba(255,84,112,.35);
-  box-shadow:0 0 12px rgba(255,84,112,.2);animation:pulseHot 2s ease-in-out infinite;}
+.badge{display:inline-block;padding:3px 8px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.06em;border-radius:3px;font-weight:600;text-transform:uppercase;border:1px solid transparent;vertical-align:middle;}
+.badge.hot{background:rgba(255,84,112,.15);color:var(--hot);border-color:rgba(255,84,112,.35);box-shadow:0 0 12px rgba(255,84,112,.2);animation:pulseHot 2s ease-in-out infinite;}
 .badge.warm{background:rgba(255,184,77,.12);color:var(--warm);border-color:rgba(255,184,77,.3)}
 .badge.cold{background:rgba(90,106,117,.1);color:var(--cold);border-color:rgba(90,106,117,.2)}
-.badge.smart{background:rgba(153,69,255,.15);color:#c499ff;border-color:rgba(153,69,255,.4)}
-.badge.fresh{background:rgba(20,241,149,.12);color:var(--teal);border-color:rgba(20,241,149,.3)}
-.badge.whale{background:rgba(153,69,255,.18);color:#d4b3ff;border-color:rgba(153,69,255,.4)}
+.badge.smart{background:rgba(153,69,255,.18);color:#d4b3ff;border-color:rgba(153,69,255,.45)}
+.badge.fresh{background:rgba(20,241,149,.14);color:var(--teal);border-color:rgba(20,241,149,.35)}
+.badge.whale{background:rgba(153,69,255,.2);color:#e0c8ff;border-color:rgba(153,69,255,.5)}
 @keyframes pulseHot{0%,100%{box-shadow:0 0 12px rgba(255,84,112,.2)}50%{box-shadow:0 0 20px rgba(255,84,112,.5)}}
 
-.fresh-tag{display:inline-block;padding:2px 6px;font-family:var(--mono);font-size:9px;
-  letter-spacing:.05em;background:rgba(157,255,87,.08);color:var(--green);
-  border-radius:3px;text-transform:uppercase;}
-.fresh-tag.warn{background:rgba(255,184,77,.1);color:var(--warn)}
-.fresh-tag.bad{background:rgba(255,61,90,.1);color:var(--danger)}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
 .k{background:linear-gradient(135deg,var(--panel) 0%,var(--panel-2) 100%);border:1px solid var(--border);
-  padding:14px 16px;border-radius:6px;position:relative;overflow:hidden;transition:border-color .2s;}
+  padding:16px 18px;border-radius:8px;position:relative;overflow:hidden;transition:border-color .2s;}
 .k:hover{border-color:var(--border-hi)}
-.k small{color:var(--dim);display:block;font-size:9.5px;letter-spacing:.14em;font-weight:600;text-transform:uppercase}
+.k small{color:var(--dim);display:block;font-size:10px;letter-spacing:.14em;font-weight:600;text-transform:uppercase}
 .k div{font-size:22px;font-weight:600;margin-top:6px;color:var(--text);letter-spacing:-.02em}
-.k .delta{margin-top:6px;font-size:10.5px;font-family:var(--mono);color:var(--dim)}
+.k .delta{margin-top:8px;font-size:11px;font-family:var(--mono);color:var(--dim)}
 
-.empty{padding:56px 24px;text-align:center;color:var(--dim);line-height:1.7;font-size:12.5px}
-.empty .icon{font-size:32px;margin-bottom:12px;opacity:.5;display:block}
-.empty b{color:var(--text);display:block;margin-bottom:6px;font-size:13px;letter-spacing:.06em}
-.empty code{background:var(--panel-3);color:var(--green);padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:11px}
-.empty .hint{margin-top:10px;font-size:11px;opacity:.7}
+.empty{padding:60px 24px;text-align:center;color:var(--dim);line-height:1.7;font-size:13px}
+.empty .icon{font-size:42px;margin-bottom:16px;opacity:.6;display:block}
+.empty b{color:var(--text);display:block;margin-bottom:8px;font-size:14px;letter-spacing:.06em}
+.empty code{background:var(--panel-3);color:var(--green);padding:2px 7px;border-radius:3px;font-family:var(--mono);font-size:11.5px}
+.empty .hint{margin-top:14px;font-size:12px;opacity:.85;line-height:1.6}
 
-.note{border-left:2px solid var(--green);padding:10px 14px;background:rgba(157,255,87,.03);
-  color:var(--dim);font-size:12px;margin-bottom:14px;border-radius:0 4px 4px 0;}
+.action-card{
+  display:flex;gap:16px;padding:20px;border-radius:8px;margin-bottom:16px;
+  background:linear-gradient(135deg,rgba(255,184,77,.04),rgba(255,61,90,.02));
+  border:1px solid rgba(255,184,77,.2);
+}
+.action-card .ic{font-size:28px;line-height:1;flex-shrink:0}
+.action-card .body{flex:1;min-width:0}
+.action-card .hdr{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--text);margin-bottom:6px;text-transform:uppercase}
+.action-card .desc{font-size:12.5px;color:var(--dim);line-height:1.6;margin-bottom:10px}
+.action-card .steps{list-style:none;padding:0;margin:0;font-size:12px}
+.action-card .steps li{padding:6px 0 6px 24px;position:relative;color:var(--text);border-top:1px solid rgba(255,184,77,.1)}
+.action-card .steps li::before{content:'→';position:absolute;left:0;color:var(--warm);font-weight:700}
+.action-card .steps code{background:rgba(255,255,255,.06);color:var(--green);padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:11px}
+
+.note{border-left:2px solid var(--green);padding:12px 16px;background:rgba(157,255,87,.03);
+  color:var(--dim);font-size:12.5px;margin-bottom:16px;border-radius:0 4px 4px 0;line-height:1.6;}
 .note.warn{border-left-color:var(--warn);background:rgba(255,184,77,.03)}
-.note.danger{border-left-color:var(--danger);background:rgba(255,61,90,.03)}
 .note.purple{border-left-color:var(--purple);background:rgba(153,69,255,.03)}
-.fresh{color:var(--muted);font-size:10.5px;margin-top:10px;letter-spacing:.03em}
+.fresh{color:var(--muted);font-size:11px;margin-top:12px;letter-spacing:.02em}
 
 @keyframes flash{0%{background:rgba(157,255,87,.15);box-shadow:inset 0 0 0 1px var(--green)}100%{background:transparent;box-shadow:none}}
 tr.flash td{animation:flash 1.5s ease-out}
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:var(--panel-3);border:1px solid var(--border-hi);border-left:3px solid var(--green);
-  padding:10px 16px;border-radius:4px;font-size:12.5px;color:var(--text);
+  padding:12px 18px;border-radius:5px;font-size:13px;color:var(--text);
   box-shadow:0 8px 24px rgba(0,0,0,.5);animation:toastIn .25s ease-out;pointer-events:auto;max-width:340px;}
 .toast.err{border-left-color:var(--danger)}
 .toast.warn{border-left-color:var(--warn)}
 @keyframes toastIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
 
-.bar.health{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;
-  margin-bottom:14px;padding:12px;background:rgba(10,15,24,.5);border:1px solid var(--border);
-  border-radius:6px;font-size:11px;}
-.bar.health .stat{display:flex;flex-direction:column;gap:4px}
-.bar.health .lbl{color:var(--muted);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
-.bar.health .val{color:var(--text);font-family:var(--mono);font-weight:600;font-size:13px}
+.bar.health{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
+  margin-bottom:16px;padding:14px 18px;background:rgba(10,15,24,.5);border:1px solid var(--border);
+  border-radius:8px;font-size:12px;}
+.bar.health .stat{display:flex;flex-direction:column;gap:5px}
+.bar.health .lbl{color:var(--muted);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.bar.health .val{color:var(--text);font-family:var(--mono);font-weight:600;font-size:14px}
 
-.medal{font-size:15px;display:inline-block;width:22px;text-align:center}
+.medal{font-size:16px;display:inline-block;width:24px;text-align:center}
 .rk-1{color:gold}.rk-2{color:silver}.rk-3{color:#cd7f32}
 
 #ca{width:420px;max-width:100%}
 
-/* Alpha table specific */
-.score-cell{display:flex;align-items:center;gap:8px}
-.score-num{font-family:var(--mono);font-weight:700;font-size:14px;min-width:38px}
-.score-hot{color:var(--hot)}
-.score-warm{color:var(--warm)}
-.score-cold{color:var(--cold)}
-
-.alpha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:16px}
+.alpha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:20px}
 .alpha-card{background:linear-gradient(135deg,var(--panel) 0%,var(--panel-2) 100%);
-  border:1px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;
+  border:1px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;
   transition:all .2s;position:relative;overflow:hidden;}
 .alpha-card:hover{border-color:var(--green);transform:translateY(-2px);
-  box-shadow:0 8px 24px rgba(157,255,87,.08);}
-.alpha-card .hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-.alpha-card .sym{font-size:16px;font-weight:700;color:var(--text);letter-spacing:.03em}
-.alpha-card .mint{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
-.alpha-card .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;
-  padding-top:12px;border-top:1px solid var(--border)}
-.alpha-card .stat-row .lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
-.alpha-card .stat-row .val{font-size:13px;font-family:var(--mono);font-weight:600;margin-top:2px}
-.alpha-card .badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+  box-shadow:0 12px 32px rgba(157,255,87,.1);}
+.alpha-card .head{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.alpha-card .meta{flex:1;min-width:0}
+.alpha-card .sym{font-size:16px;font-weight:700;color:var(--text);letter-spacing:.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.alpha-card .mint{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+.alpha-card .score{text-align:right;flex-shrink:0}
+.alpha-card .score-val{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;margin-bottom:4px}
+.alpha-card .score-hot{color:var(--hot);text-shadow:0 0 20px rgba(255,84,112,.4)}
+.alpha-card .score-warm{color:var(--warm);text-shadow:0 0 20px rgba(255,184,77,.3)}
+.alpha-card .score-cold{color:var(--cold)}
+.alpha-card .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.alpha-card .stat-grid .lbl{font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.alpha-card .stat-grid .val{font-size:14px;font-family:var(--mono);font-weight:600;margin-top:2px}
+.alpha-card .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+
+.score-cell{display:flex;align-items:center;gap:10px}
+.score-num{font-family:var(--mono);font-weight:700;font-size:15px;min-width:42px}
+
+.token-avatar{display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;border:1px solid var(--border);flex-shrink:0;overflow:hidden;
+  font-weight:700;color:#fff;background:var(--panel-3);vertical-align:middle;}
+.token-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.token-name-cell{display:inline-flex;align-items:center;gap:10px;vertical-align:middle}
 
 @media (max-width:640px){
   main{padding:16px}
@@ -193,6 +206,7 @@ tr.flash td{animation:flash 1.5s ease-out}
   .k div{font-size:18px}
   #ca{width:100%}
   .alpha-grid{grid-template-columns:1fr}
+  td,th{padding:10px 12px;font-size:12px}
 }
 </style></head><body>
 <header>
@@ -213,6 +227,10 @@ const n=(v,d=2)=>v==null?'n/a':Number(v).toLocaleString(undefined,{maximumFracti
 const pct=v=>v==null?'n/a':(v>0?'+':'')+n(v,1)+'%';
 const ago=t=>{const s=(Date.now()-new Date(t))/1e3;return s<60?~~s+'s':s<3600?~~(s/60)+'m':s<86400?~~(s/3600)+'h':~~(s/86400)+'d'};
 const copy=t=>navigator.clipboard.writeText(t);
+const isDemo=row=>{
+  const s=row.caller||row.wallet||row.name||'';
+  return /^demo[_\-\s]/i.test(String(s));
+};
 
 let sb=null,session=null,chan=null,cfg={},timer=null,lastStatus=null;
 let smartWalletsCache=null;
@@ -222,6 +240,46 @@ const B58=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/,PER=['24h','7d','30d'];
 const ck=r=>{if(r.error)throw Object.assign(new Error(r.error.message),{status:500});return r.data};
 const bad=(m,s=400)=>{throw Object.assign(new Error(m),{status:s})};
 
+/* ─── TOKEN AVATAR (logo or generated) ─── */
+const ipfsUrl=url=>{
+  if(!url)return null;
+  if(url.startsWith('ipfs://'))return 'https://ipfs.io/ipfs/'+url.slice(7);
+  if(url.startsWith('ar://'))return 'https://arweave.net/'+url.slice(5);
+  return url;
+};
+const hashHue=str=>{
+  let h=0;
+  const s=String(str||'x');
+  for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;
+  return Math.abs(h)%360;
+};
+const gradientFor=str=>{
+  const h=hashHue(str);
+  return `linear-gradient(135deg,hsl(${h},55%,45%),hsl(${(h+45)%360},55%,28%))`;
+};
+const tokenAvatar=(t,size=20)=>{
+  const s=size, font=Math.round(s*0.42);
+  if(!t)return `<div class="token-avatar" style="width:${s}px;height:${s}px;background:var(--panel-3)"></div>`;
+  const url=t.image_url?ipfsUrl(t.image_url):null;
+  const letter=((t.symbol||t.name||t.mint||'?')[0]||'?').toUpperCase();
+  const bg=gradientFor(t.mint||t.symbol||'');
+  if(url){
+    return `<div class="token-avatar" style="width:${s}px;height:${s}px;background:${bg};font-size:${font}px">
+      <img src="${esc(url)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='${esc(letter)}';this.parentElement.style.display='inline-flex'">
+    </div>`;
+  }
+  return `<div class="token-avatar" style="width:${s}px;height:${s}px;background:${bg};font-size:${font}px">${esc(letter)}</div>`;
+};
+
+const tokenCell=(t,size=22)=>{
+  if(!t)return '—';
+  return `<a class="l" href="#token/${esc(t.mint)}" style="display:inline-flex;align-items:center;gap:10px;vertical-align:middle">
+    ${tokenAvatar(t,size)}
+    <span>${esc(t.symbol||t.name||short(t.mint))}</span>
+  </a>`;
+};
+
+/* ─── WALLET SESSION ─── */
 function setWallet(w){
   session=w?{user:{id:w,wallet:w}}:null;
   if(w)localStorage.setItem('lp_wallet',w);else localStorage.removeItem('lp_wallet');
@@ -233,26 +291,29 @@ async function disconnectWallet(){
   setWallet(null);
 }
 
+/* ─── API ─── */
 const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
  const u=new URL(p,'http://x'),q=u.searchParams,path=u.pathname,m=o.method||'GET',
    now=new Date().toISOString(),lim=Math.min(Math.max(+q.get('limit')||50,1),100);
  if(path==='/status'){const rows=ck(await sb.from('ingestion_state').select('source,last_run_at,last_status,last_error'));
    return{database:true,pumpfun:rows.some(r=>r.source.startsWith('pumpfun')&&r.last_status==='ok'),
      helius:rows.some(r=>r.source==='helius'),ingestion:rows}}
- if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd)').order('block_time',{ascending:false}).limit(lim);
+ if(path==='/feed'){let s=sb.from('trades').select('signature,side,sol_amount,wallet,block_time,source,tokens(mint,name,symbol,market_cap_usd,image_url)').order('block_time',{ascending:false}).limit(lim);
    if(['buy','sell'].includes(q.get('side')))s=s.eq('side',q.get('side'));
    if(+q.get('minSol'))s=s.gte('sol_amount',+q.get('minSol'));
    return{events:ck(await s),fetchedAt:now}}
  if(path==='/callers'){const per=['24h','7d','30d','all'].includes(q.get('period'))?q.get('period'):'24h',
      col={avg:'avg_return_pct',best:'best_call_pct',calls:'total_calls',median:'median_return_pct'}[q.get('sort')]||'avg_return_pct';
-   return{period:per,callers:ck(await sb.from('caller_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim)),fetchedAt:now}}
+   const raw=ck(await sb.from('caller_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim));
+   return{period:per,callers:raw.filter(r=>!isDemo(r)),fetchedAt:now}}
  if(path==='/wallets'){const per=PER.includes(q.get('period'))?q.get('period'):'24h',
      col={realized:'realized_pnl',combined:'combined_pnl',positions:'positions'}[q.get('sort')]||'combined_pnl';
-   return{period:per,wallets:ck(await sb.from('wallet_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim)),fetchedAt:now}}
+   const raw=ck(await sb.from('wallet_performance').select('*').eq('period',per).order(col,{ascending:false,nullsFirst:false}).limit(lim));
+   return{period:per,wallets:raw.filter(r=>!isDemo(r)),fetchedAt:now}}
  if(path.startsWith('/wallet/')){const a=path.slice(8);if(!B58.test(a))bad('invalid_address');
    const[perf,trades]=await Promise.all([
      sb.from('wallet_performance').select('*').eq('wallet',a),
-     sb.from('trades').select('signature,side,sol_amount,block_time,tokens(mint,symbol,name)').eq('wallet',a).order('block_time',{ascending:false}).limit(50)
+     sb.from('trades').select('signature,side,sol_amount,block_time,tokens(mint,symbol,name,image_url)').eq('wallet',a).order('block_time',{ascending:false}).limit(50)
    ]);
    let pf=null;
    try{const r=await fetch(window.CFG.supabaseUrl+'/functions/v1/ingest?wallet='+a,{headers:{apikey:window.CFG.supabaseAnonKey}});if(r.ok)pf=await r.json()}catch{}
@@ -265,7 +326,8 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
    ]);
    if(!ck(t))bad('token_not_found',404);
    const w={};ck(tr).forEach(x=>w[x.wallet]=(w[x.wallet]||0)+Number(x.sol_amount));
-   return{token:t.data,trades:tr.data,callouts:ck(c),
+   return{token:t.data,trades:tr.data,
+     callouts:ck(c).filter(r=>!isDemo(r)),
      topWallets:Object.entries(w).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([wallet,sol_volume])=>({wallet,sol_volume}))}}
  if(path.startsWith('/watchlist')){if(!session)bad('unauthorized',401);
    if(m==='GET')return ck(await sb.from('watchlists').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}));
@@ -274,7 +336,8 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
      ck(await sb.from('watchlists').upsert({user_id:session.user.id,kind,ref},{onConflict:'user_id,kind,ref',ignoreDuplicates:true}));
      return{ok:true}}
    if(m==='DELETE'){ck(await sb.from('watchlists').delete().eq('id',path.split('/')[2]).eq('user_id',session.user.id));return{ok:true}}}
- if(path==='/topcalls')return ck(await sb.from('public_callouts').select('id,caller,called_at,entry_market_cap_usd,max_upside_pct,hit_2x,hit_5x,hit_10x,tokens(mint,symbol,name)').neq('status','incomplete').not('max_upside_pct','is',null).order('max_upside_pct',{ascending:false}).limit(20));
+ if(path==='/topcalls'){const raw=ck(await sb.from('public_callouts').select('id,caller,called_at,entry_market_cap_usd,max_upside_pct,hit_2x,hit_5x,hit_10x,tokens(mint,symbol,name,image_url)').neq('status','incomplete').not('max_upside_pct','is',null).order('max_upside_pct',{ascending:false}).limit(20));
+   return raw.filter(r=>!isDemo(r))}
  if(path==='/positions')return ck(await sb.from('largest_positions').select('*').order('net_sol',{ascending:false}).limit(lim));
  if(path==='/early')return ck(await sb.from('early_entries').select('*').order('block_time',{ascending:false}).limit(lim));
  if(path==='/active')return ck(await sb.rpc('most_active',{p_days:+q.get('days')||1}));
@@ -283,7 +346,7 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
    if(!d.data)bad('not_found',404);return d.data}
  bad('not_found',404)};
 
-/* ── SMART WALLET DETECTION ── */
+/* ─── SMART WALLETS ─── */
 async function getSmartWallets(){
   if(smartWalletsCache!==null)return smartWalletsCache;
   try{
@@ -292,19 +355,18 @@ async function getSmartWallets(){
       .gt('combined_pnl',0)
       .order('combined_pnl',{ascending:false})
       .limit(100);
-    smartWalletsCache=new Set((data||[]).map(r=>r.wallet));
+    smartWalletsCache=new Set((data||[]).filter(r=>!isDemo(r)).map(r=>r.wallet));
   }catch{smartWalletsCache=new Set()}
   return smartWalletsCache;
 }
 
-/* ── SIGNAL SCORING ── */
+/* ─── SIGNAL COMPUTATION ─── */
 async function computeSignals(){
   const smart=await getSmartWallets();
   const cutoff=new Date(Date.now()-6*3600*1000).toISOString();
 
-  // Fetch up to 1000 recent trades — this is the ONLY heavy query
   const {data:trades,error}=await sb.from('trades')
-    .select('mint,wallet,side,sol_amount,block_time,tokens(mint,symbol,name,market_cap_usd)')
+    .select('mint,wallet,side,sol_amount,block_time,tokens(mint,symbol,name,market_cap_usd,image_url)')
     .gte('block_time',cutoff)
     .order('block_time',{ascending:false})
     .limit(1000);
@@ -321,32 +383,22 @@ async function computeSignals(){
 
     if(!tokens.has(t.mint)){
       tokens.set(t.mint,{
-        mint:t.mint,
-        symbol:t.tokens?.symbol||t.tokens?.name||t.mint.slice(0,6),
-        name:t.tokens?.name,
-        mcap:t.tokens?.market_cap_usd,
-        buys:0,sells:0,buy_sol:0,sell_sol:0,total_sol:0,
-        vol_5m:0,vol_1h:0,
-        wallets:new Set(),
-        smart_buys:0,smart_sell:0,smart_buy_sol:0,
+        mint:t.mint,symbol:t.tokens?.symbol||t.tokens?.name||t.mint.slice(0,6),
+        name:t.tokens?.name,image_url:t.tokens?.image_url,mcap:t.tokens?.market_cap_usd,
+        buys:0,sells:0,buy_sol:0,sell_sol:0,total_sol:0,vol_5m:0,vol_1h:0,
+        wallets:new Set(),smart_buys:0,smart_sell:0,
         first_seen:bt,last_trade:bt,
       });
     }
     const tk=tokens.get(t.mint);
-    tk.total_sol+=sol;
-    tk.wallets.add(t.wallet);
+    tk.total_sol+=sol;tk.wallets.add(t.wallet);
     if(bt<tk.first_seen)tk.first_seen=bt;
     if(bt>tk.last_trade)tk.last_trade=bt;
     if(ageSec<300)tk.vol_5m+=sol;
     if(ageSec<3600)tk.vol_1h+=sol;
 
-    if(t.side==='buy'){
-      tk.buys++;tk.buy_sol+=sol;
-      if(smart.has(t.wallet)){tk.smart_buys++;tk.smart_buy_sol+=sol}
-    }else{
-      tk.sells++;tk.sell_sol+=sol;
-      if(smart.has(t.wallet))tk.smart_sell++;
-    }
+    if(t.side==='buy'){tk.buys++;tk.buy_sol+=sol;if(smart.has(t.wallet))tk.smart_buys++}
+    else{tk.sells++;tk.sell_sol+=sol;if(smart.has(t.wallet))tk.smart_sell++}
   }
 
   const ranked=[...tokens.values()].map(tk=>{
@@ -364,21 +416,30 @@ async function computeSignals(){
     score*=fresh;
 
     return{...tk,buy_ratio,net_sol,age_hrs,fresh,score,
-      wallets_count:tk.wallets.size,
-      smart_net:tk.smart_buys-tk.smart_sell};
+      wallets_count:tk.wallets.size,smart_net:tk.smart_buys-tk.smart_sell};
   }).filter(tk=>tk.total_sol>=0.5)
     .sort((a,b)=>b.score-a.score);
 
   return{ranked,smartCount:smart.size,totalTokens:tokens.size};
 }
 
-/* ── UI ── */
+/* ─── UI HELPERS ─── */
 const empty=(m,opts={})=>`<div class="empty">
   <span class="icon">${opts.icon||'∅'}</span>
   <b>${opts.title||'NO LIVE DATA'}</b>
   <div>${m}</div>
   ${opts.hint?`<div class="hint">${opts.hint}</div>`:''}
 </div>`;
+
+const actionCard=(icon,title,desc,steps)=>`<div class="action-card">
+  <div class="ic">${icon}</div>
+  <div class="body">
+    <div class="hdr">${title}</div>
+    <div class="desc">${desc}</div>
+    ${steps.length?`<ul class="steps">${steps.map(s=>`<li>${s}</li>`).join('')}</ul>`:''}
+  </div>
+</div>`;
+
 const fresh=t=>`<div class="fresh">Data fetched ${t?ago(t)+' ago':'—'} · source: Supabase</div>`;
 
 function toast(msg,kind=''){
@@ -401,49 +462,23 @@ const medal=i=>{
   return `<span class="medal" style="color:var(--muted);font-size:11px;font-family:var(--mono)">${i+1}</span>`;
 };
 const pnlClass=v=>v==null?'':v>=0?'buy':'sell';
+const signalBadge=score=>{
+  if(score>=150)return '<span class="badge hot">🔥 HOT</span>';
+  if(score>=70)return '<span class="badge warm">⚡ WARM</span>';
+  return '<span class="badge cold">❄ COLD</span>';
+};
 
 const warnBanner=s=>{
   if(!s)return '';
   const h=s.ingestion?.find(r=>r.source==='helius');
   if(!h)return '';
   if(h.last_status==='error')
-    return `<div class="banner danger"><div><b>⚠ WEBHOOK ERROR</b><div class="msg">${esc(h.last_error||'Unknown error.')}</div></div></div>`;
+    return `<div class="banner danger"><div><b>⚠ WEBHOOK ERROR</b><div class="msg">${esc(h.last_error||'Unknown error')}. Trades may not be ingesting.</div></div></div>`;
   if(h.last_run_at){
     const age=(Date.now()-new Date(h.last_run_at))/60000;
-    if(age>15)return `<div class="banner"><div><b>STALE FEED</b><div class="msg">Last trade ingested ${~~age}m ago. Webhook may be paused.</div></div></div>`;
+    if(age>15)return `<div class="banner"><div><b>STALE FEED</b><div class="msg">Last trade ingested ${~~age} minutes ago. Webhook may be paused, or Pump.fun is quiet.</div></div></div>`;
   }
   return '';
-};
-
-const healthBar=ev=>{
-  const buys=ev.filter(e=>e.side==='buy').length;
-  const sells=ev.filter(e=>e.side==='sell').length;
-  const big=ev.filter(e=>Number(e.sol_amount)>=5).length;
-  const vol=ev.reduce((a,e)=>a+Number(e.sol_amount),0);
-  const last=ev[0]?.block_time;
-  return `<div class="bar health">
-    <div class="stat"><span class="lbl">LOADED</span><span class="val">${ev.length} trades</span></div>
-    <div class="stat"><span class="lbl">BUYS/SELLS</span><span class="val"><span class="buy">${buys}</span>/<span class="sell">${sells}</span></span></div>
-    <div class="stat"><span class="lbl">BIG ≥5</span><span class="val">${big}</span></div>
-    <div class="stat"><span class="lbl">VOLUME</span><span class="val">${n(vol,1)} SOL</span></div>
-    <div class="stat"><span class="lbl">LAST</span><span class="val">${last?ago(last)+' ago':'—'}</span></div>
-  </div>`;
-};
-
-const portTable=p=>`<table>
-  <tr><th>TOKEN</th><th>SYMBOL</th><th>NET SOL</th><th>TRADES</th></tr>
-  ${p.map(x=>`<tr>
-    <td><a class="l" href="#token/${esc(x.mint)}">${short(x.mint)}</a></td>
-    <td>${esc(x.symbol||x.name||'—')}</td>
-    <td class="buy">${n(x.net_sol)}</td>
-    <td>${x.trades||0}</td>
-  </tr>`).join('')}
-</table>`;
-
-const signalBadge=score=>{
-  if(score>=150)return '<span class="badge hot">🔥 HOT</span>';
-  if(score>=70)return '<span class="badge warm">⚡ WARM</span>';
-  return '<span class="badge cold">❄ COLD</span>';
 };
 
 function cleanup(){clearInterval(timer);if(chan&&sb){sb.removeChannel(chan);chan=null}}
@@ -468,7 +503,6 @@ async function status(){
   }catch{lastStatus=null;$('#conn').innerHTML='<span class="pill bad">OFFLINE</span>'}
 }
 
-const tokLink=t=>t?`<a class="l" href="#token/${esc(t.mint)}">${esc(t.symbol||t.name||short(t.mint))}</a>`:'—';
 const caBtn=m=>`<button onclick="copy('${esc(m)}');toast('Address copied')">COPY CA</button>`;
 const star=(kind,ref)=>`<button title="Follow" onclick="follow('${kind}','${esc(ref)}',this)">☆</button>`;
 async function follow(kind,ref,b){
@@ -477,7 +511,7 @@ async function follow(kind,ref,b){
   catch(e){alert('Could not save: '+e.message)}
 }
 
-/* ── VIEWS ── */
+/* ═══════ VIEWS ═══════ */
 const V={
 
 async alpha(){
@@ -488,66 +522,66 @@ async alpha(){
   $('#app').innerHTML=`
     ${warnBanner(lastStatus)}
     <h2>◉ ALPHA SIGNALS <span style="color:var(--purple)">●</span></h2>
-    <p class="sub">Tokens scored by volume, buy pressure, distribution, smart money, and freshness. Click any card to dig in.</p>
+    <p class="sub">Tokens scored by volume · buy pressure · distribution · smart money · freshness. Click any card to dig in.</p>
 
     <div class="bar health">
       <div class="stat"><span class="lbl">TRACKED TOKENS</span><span class="val">${totalTokens}</span></div>
       <div class="stat"><span class="lbl">HOT SIGNALS</span><span class="val" style="color:var(--hot)">${hot}</span></div>
       <div class="stat"><span class="lbl">WARM SIGNALS</span><span class="val" style="color:var(--warm)">${warm}</span></div>
-      <div class="stat"><span class="lbl">SMART WALLETS</span><span class="val">${smartCount||'—'}</span></div>
+      <div class="stat"><span class="lbl">SMART WALLETS</span><span class="val">${smartCount||'OFF'}</span></div>
       <div class="stat"><span class="lbl">WINDOW</span><span class="val">6h</span></div>
     </div>
 
-    ${smartCount===0?'<div class="banner purple"><div><b>SMART MONEY OFFLINE</b><div class="msg">No wallet_performance data yet — scores compute without the smart-money multiplier. Populate <code>wallet_performance</code> via cron for full signal strength.</div></div></div>':''}
+    ${smartCount===0?actionCard('⚠️','SMART MONEY NOT TRACKING',
+      'The <code>wallet_performance</code> table is empty — no known profitable wallets to compare against. Signal scores work but are missing the smart-money multiplier.',
+      ['Populate <code>wallet_performance</code> with PnL data via a leaderboard cron','Or manually insert top wallet PnL rows','See the <code>#wallets</code> → PNL tab for what\'s expected']):''}
 
-    ${ranked.length===0?empty('No tokens with active trades in the last 6 hours.',{icon:'📡',title:'NO SIGNALS YET',hint:'Wait for the webhook to ingest trades, or check <code>#feed</code>.'}):''}
+    ${ranked.length===0?actionCard('📡','NO SIGNALS YET',
+      'No tokens with active trades in the last 6 hours. Either the webhook is idle, or Pump.fun is quiet.',
+      ['Check <code>#feed</code> to see if trades are landing','Check Supabase → Edge Functions → ingest → Logs','Wait a few minutes — new launches happen constantly']):''}
 
-    <h2 style="margin-top:24px">🔥 TOP OPPORTUNITIES</h2>
+    ${ranked.length>0?`
+    <h2 style="margin-top:28px">🔥 TOP OPPORTUNITIES</h2>
     <div class="alpha-grid">
       ${ranked.slice(0,6).map(t=>`
         <div class="alpha-card" onclick="location.hash='token/${esc(t.mint)}'">
-          <div class="hd">
-            <div>
+          <div class="head">
+            ${tokenAvatar(t,44)}
+            <div class="meta">
               <div class="sym">${esc(t.symbol)}</div>
               <div class="mint">${short(t.mint)}</div>
             </div>
-            <div style="text-align:right">
+            <div class="score">
+              <div class="score-val ${t.score>=150?'score-hot':t.score>=70?'score-warm':'score-cold'}">${Math.round(t.score)}</div>
               ${signalBadge(t.score)}
-              <div class="score-num ${t.score>=150?'score-hot':t.score>=70?'score-warm':'score-cold'}" style="margin-top:6px">${Math.round(t.score)}</div>
             </div>
           </div>
-          <div class="stat-row">
-            <div><div class="lbl">MCAP</div><div class="val">${t.mcap!=null?'$'+n(t.mcap,0):'n/a'}</div></div>
+          <div class="stat-grid">
+            <div><div class="lbl">MCAP</div><div class="val">${t.mcap!=null?'$'+n(t.mcap,0):'—'}</div></div>
             <div><div class="lbl">AGE</div><div class="val">${t.age_hrs<1?Math.round(t.age_hrs*60)+'m':Math.round(t.age_hrs)+'h'}</div></div>
-            <div><div class="lbl">VOL 1H</div><div class="val">${n(t.vol_1h,1)}</div></div>
+            <div><div class="lbl">VOL 1H</div><div class="val">${n(t.vol_1h,1)} SOL</div></div>
             <div><div class="lbl">BUY %</div><div class="val ${t.buy_ratio>0.6?'buy':t.buy_ratio<0.4?'sell':''}">${Math.round(t.buy_ratio*100)}%</div></div>
           </div>
           <div class="badges">
             ${t.smart_buys>0?`<span class="badge smart">◆ ${t.smart_buys} SMART</span>`:''}
             ${t.age_hrs<1?'<span class="badge fresh">FRESH</span>':''}
             ${t.wallets_count>15?'<span class="badge warm">WIDE</span>':''}
-            ${t.net_sol>0?'<span class="badge fresh">+ SOL</span>':''}
+            ${t.net_sol>0?'<span class="badge fresh">+ SOL</span>':'<span class="badge cold">NET NEG</span>'}
           </div>
         </div>
       `).join('')}
     </div>
 
-    <h2 style="margin-top:24px">SIGNAL TABLE</h2>
+    <h2 style="margin-top:28px">SIGNAL TABLE</h2>
     <div class="box">
       <table>
-        <tr>
-          <th>#</th><th>TOKEN</th><th>SCORE</th><th>AGE</th><th>MCAP</th>
-          <th>VOL 1H</th><th>BUY%</th><th>BUYERS</th><th>SMART</th><th>NET SOL</th>
-        </tr>
+        <tr><th>#</th><th>TOKEN</th><th>SCORE</th><th>AGE</th><th>MCAP</th><th>VOL 1H</th><th>BUY%</th><th>BUYERS</th><th>SMART</th><th>NET SOL</th></tr>
         ${ranked.slice(0,40).map((t,i)=>`<tr>
           <td>${i+1}</td>
-          <td><a class="l" href="#token/${esc(t.mint)}">${esc(t.symbol)}</a></td>
-          <td><div class="score-cell">
-            <span class="score-num ${t.score>=150?'score-hot':t.score>=70?'score-warm':'score-cold'}">${Math.round(t.score)}</span>
-            ${signalBadge(t.score)}
-          </div></td>
+          <td>${tokenCell(t,22)}</td>
+          <td><div class="score-cell"><span class="score-num ${t.score>=150?'score-hot':t.score>=70?'score-warm':'score-cold'}">${Math.round(t.score)}</span>${signalBadge(t.score)}</div></td>
           <td>${t.age_hrs<1?Math.round(t.age_hrs*60)+'m':Math.round(t.age_hrs)+'h'}</td>
-          <td>${t.mcap!=null?'$'+n(t.mcap,0):'n/a'}</td>
+          <td>${t.mcap!=null?'$'+n(t.mcap,0):'—'}</td>
           <td>${n(t.vol_1h,1)}</td>
           <td class="${t.buy_ratio>0.6?'buy':t.buy_ratio<0.4?'sell':''}">${Math.round(t.buy_ratio*100)}%</td>
           <td>${t.wallets_count}</td>
@@ -556,7 +590,8 @@ async alpha(){
         </tr>`).join('')}
       </table>
     </div>
-    <p class="fresh">Signal score = log(volume) × 15 + buy_pressure × 25 + min(buyers, 30) + smart_buys × 25 + log(vol_5m) × 10, multiplied by freshness (3× if &lt;30m, 2× if &lt;2h, 1.5× if &lt;6h).</p>`;
+    <p class="fresh">Score = log(volume)×15 + buy_pressure×25 + min(buyers,30) + smart_buys×25 + log(vol_5m)×10, × freshness (3× if &lt;30m, 2× if &lt;2h, 1.5× if &lt;6h). Filter for HOT (≥150) — those are the entries.</p>
+    `:''}`;
 },
 
 async feed(){
@@ -564,21 +599,33 @@ async feed(){
   const draw=async(live)=>{
     const d=await api(`/feed?limit=60${side?'&side='+side:''}${min?'&minSol='+min:''}`);
     const ev=d.events;
-    $('#health').innerHTML=healthBar(ev);
+    const buys=ev.filter(e=>e.side==='buy').length;
+    const sells=ev.filter(e=>e.side==='sell').length;
+    const big=ev.filter(e=>Number(e.sol_amount)>=5).length;
+    const vol=ev.reduce((a,e)=>a+Number(e.sol_amount),0);
+    const last=ev[0]?.block_time;
+    $('#health').innerHTML=`<div class="bar health">
+      <div class="stat"><span class="lbl">LOADED</span><span class="val">${ev.length} trades</span></div>
+      <div class="stat"><span class="lbl">BUYS/SELLS</span><span class="val"><span class="buy">${buys}</span>/<span class="sell">${sells}</span></span></div>
+      <div class="stat"><span class="lbl">BIG ≥5</span><span class="val">${big}</span></div>
+      <div class="stat"><span class="lbl">VOLUME</span><span class="val">${n(vol,1)} SOL</span></div>
+      <div class="stat"><span class="lbl">LAST</span><span class="val">${last?ago(last)+' ago':'—'}</span></div>
+    </div>`;
     $('#list').innerHTML=ev.length?`<table>
-      <tr><th>TIME</th><th>TOKEN</th><th>CA</th><th>MCAP</th><th>SIDE</th><th>SOL</th><th>WALLET</th><th>SRC</th><th></th></tr>
+      <tr><th>TIME</th><th>TOKEN</th><th>MCAP</th><th>SIDE</th><th>SOL</th><th>WALLET</th><th>SRC</th><th></th></tr>
       ${ev.map((e,i)=>`<tr class="${live&&i===0?'flash':''}">
-        <td>${ago(e.block_time)}</td>
-        <td>${tokLink(e.tokens)} ${whaleBadge(e.sol_amount)}</td>
-        <td>${short(e.tokens?.mint)}</td>
-        <td>${e.tokens?.market_cap_usd!=null?'$'+n(e.tokens.market_cap_usd,0):'n/a'}</td>
+        <td>${ago(e.block_time)} ago</td>
+        <td>${tokenCell(e.tokens,24)} ${whaleBadge(e.sol_amount)}</td>
+        <td>${e.tokens?.market_cap_usd!=null?'$'+n(e.tokens.market_cap_usd,0):'—'}</td>
         <td class="${e.side}">${e.side.toUpperCase()}</td>
         <td>${n(e.sol_amount)}</td>
         <td><a class="l" href="#wallet/${esc(e.wallet)}">${short(e.wallet)}</a></td>
         <td>${esc(e.source)}</td>
         <td>${star('wallet',e.wallet)}</td>
       </tr>`).join('')}
-    </table>`:empty('No trades ingested yet.',{title:'FEED IS EMPTY',icon:'📡',hint:'Deploy the <code>ingest</code> Edge Function and connect Helius.'});
+    </table>`:actionCard('📡','FEED IS QUIET',
+      'No trades ingested yet. The webhook is configured but hasn\'t received data.',
+      ['Check Supabase → Edge Functions → ingest → Logs','Confirm Helius webhook URL matches <code>…/functions/v1/ingest</code>','Webhook type must be <b>Enhanced</b>, tx type <b>SWAP</b>']);
     $('#fr').innerHTML=fresh(d.fetchedAt);
   };
   $('#app').innerHTML=`
@@ -618,7 +665,9 @@ async callers(){
         <td class="sell">${pct(c.worst_call_pct)}</td>
         <td>${star('caller',c.caller)}</td>
       </tr>`).join('')}
-    </table>`:empty('No verified callout performance yet.',{title:'NO CALLER DATA',icon:'📊',hint:'Requires a Pump.fun callouts API key or manual inserts.'});
+    </table>`:actionCard('🎯','CALLER TRACKING OFF',
+      'No verified callouts yet. This tab needs either a Pump.fun callouts API or manual inserts to fill <code>caller_performance</code>. The rest of the terminal works fine without it.',
+      ['Insert rows into <code>caller_performance</code> manually via SQL','Or run a cron that scrapes callout sources (X / Telegram)','Track calls you personally trust by inserting into <code>public_callouts</code>']);
     $('#fr').innerHTML=fresh(d.fetchedAt);
   };
   $('#app').innerHTML=`
@@ -631,7 +680,7 @@ async callers(){
     </div>
     <div class="box" id="list"></div>
     <div id="fr"></div>
-    <h2 style="margin-top:24px">TOP CALLS</h2>
+    <h2 style="margin-top:28px">TOP CALLS</h2>
     <p class="sub">Highest verified max upside since call.</p>
     <div class="box" id="top"></div>`;
   document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
@@ -646,16 +695,14 @@ async callers(){
   $('#top').innerHTML=tc.length?`<table>
     <tr><th>TOKEN</th><th>CALLER</th><th>ENTRY MCAP</th><th>MAX UPSIDE</th><th>2X</th><th>5X</th><th>10X</th><th></th></tr>
     ${tc.map(c=>`<tr>
-      <td>${tokLink(c.tokens)}</td>
+      <td>${tokenCell(c.tokens,22)}</td>
       <td><a class="l" href="#caller/${esc(c.caller)}">${short(c.caller)}</a></td>
-      <td>${c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'n/a'}</td>
+      <td>${c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'—'}</td>
       <td class="buy">${pct(c.max_upside_pct)}</td>
-      <td>${c.hit_2x?'✔':'–'}</td>
-      <td>${c.hit_5x?'✔':'–'}</td>
-      <td>${c.hit_10x?'✔':'–'}</td>
+      <td>${c.hit_2x?'✔':'–'}</td><td>${c.hit_5x?'✔':'–'}</td><td>${c.hit_10x?'✔':'–'}</td>
       <td><a class="l" href="#callout/${c.id}">DETAIL</a></td>
     </tr>`).join('')}
-  </table>`:empty('No verified calls with tracked performance yet.',{icon:'🎯',title:'NO CALLS YET'});
+  </table>`:empty('No verified calls yet.',{icon:'🎯',title:'NO CALLS RECORDED'});
 },
 
 async caller(id){
@@ -677,40 +724,42 @@ async wallets(){
   let mode='pnl',period='24h',sort='combined';
   const tabs=[['pnl','PNL'],['positions','POSITIONS'],['early','EARLY'],['active','ACTIVE']];
   const days={'24h':1,'7d':7,'30d':30};
-  const tbl=(h,r)=>r.length?`<table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${r.join('')}</table>`:empty('No data yet.',{icon:'💼',title:'EMPTY'});
+  const tbl=(h,r)=>r.length?`<table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${r.join('')}</table>`:'';
   const W=a=>`<a class="l" href="#wallet/${esc(a)}">${short(a)}</a>`;
   const T=m=>`<a class="l" href="#token/${esc(m)}">${short(m)}</a>`;
   const draw=async()=>{
     let html='',note='';
     if(mode==='pnl'){
       const d=await api(`/wallets?period=${period}&sort=${sort}`);
-      html=tbl(['#','WALLET','REALIZED','UNREALIZED','COMBINED','POSITIONS','SRC',''],d.wallets.map((w,i)=>`<tr>
+      html=d.wallets.length?tbl(['#','WALLET','REALIZED','UNREALIZED','COMBINED','POSITIONS','SRC',''],d.wallets.map((w,i)=>`<tr>
         <td>${medal(i)}</td><td>${W(w.wallet)}</td>
         <td class="${pnlClass(w.realized_pnl)}">${n(w.realized_pnl)}</td>
         <td class="${pnlClass(w.unrealized_pnl)}">${n(w.unrealized_pnl)}</td>
         <td class="${pnlClass(w.combined_pnl)}">${n(w.combined_pnl)}</td>
-        <td>${w.positions??'n/a'}</td>
-        <td><span class="fresh-tag ${w.metric_origin==='api'?'':'warn'}">${w.metric_origin==='api'?'API':'CALC'}</span></td>
+        <td>${w.positions??'—'}</td>
+        <td><span class="badge ${w.metric_origin==='api'?'fresh':'warm'}">${w.metric_origin==='api'?'API':'CALC'}</span></td>
         <td>${star('wallet',w.wallet)}</td>
-      </tr>`));
-      note='PnL leaderboard — may be demo until leaderboard cron runs.';
+      </tr>`)):actionCard('⚡','WALLET PNL NOT TRACKING',
+        'No verified PnL data yet. This powers the TOP WALLETS → PNL tab and the smart-money multiplier in ALPHA scores.',
+        ['Populate <code>wallet_performance</code> via a cron that pulls Pump.fun leaderboard data','Or manually insert top wallet PnL rows','ALPHA signals still work without this — scores will just be lower']);
+      note='PnL leaderboard — verified API data only. Empty means no cron is populating it yet.';
     }
     else if(mode==='positions'){const d=await api('/positions?limit=50');
-      html=tbl(['WALLET','TOKEN','NET SOL','TRADES','LAST'],d.map(x=>`<tr>
+      html=d.length?tbl(['WALLET','TOKEN','NET SOL','TRADES','LAST'],d.map(x=>`<tr>
         <td>${W(x.wallet)}</td><td>${T(x.mint)}</td>
-        <td class="buy">${n(x.net_sol)}</td><td>${x.trades}</td><td>${ago(x.last_trade)}</td>
-      </tr>`));
+        <td class="buy">${n(x.net_sol)}</td><td>${x.trades}</td><td>${ago(x.last_trade)} ago</td>
+      </tr>`)):empty('No positions in database yet.',{icon:'💼',title:'NO OPEN POSITIONS'});
       note='Calculated from ingested trades (buys − sells).';}
     else if(mode==='early'){const d=await api('/early?limit=50');
-      html=tbl(['WALLET','TOKEN','SOL','AFTER 1ST','WHEN'],d.map(x=>`<tr>
+      html=d.length?tbl(['WALLET','TOKEN','SOL','AFTER 1ST','WHEN'],d.map(x=>`<tr>
         <td>${W(x.wallet)}</td><td>${T(x.mint)}</td>
-        <td>${n(x.sol_amount)}</td><td>${x.secs_after_first_seen}s</td><td>${ago(x.block_time)}</td>
-      </tr>`));
+        <td>${n(x.sol_amount)}</td><td>${x.secs_after_first_seen}s</td><td>${ago(x.block_time)} ago</td>
+      </tr>`)):empty('No early-buyer data yet.',{icon:'🎯',title:'NO EARLY ENTRIES'});
       note='First 10 buyers per token, timed from first ingested trade.';}
     else{const d=await api('/active?days='+days[period]);
-      html=tbl(['#','WALLET','TRADES','SOL VOLUME'],d.map((x,i)=>`<tr>
+      html=d.length?tbl(['#','WALLET','TRADES','SOL VOLUME'],d.map((x,i)=>`<tr>
         <td>${i+1}</td><td>${W(x.wallet)}</td><td>${x.trades}</td><td>${n(x.sol_volume)}</td>
-      </tr>`));
+      </tr>`)):empty('No activity in this window.',{icon:'🔥',title:'QUIET'});
       note='Calculated from ingested trades.';}
     $('#bar').innerHTML=tabs.map(([m,l])=>`<button data-m="${m}" class="${m===mode?'on':''}">${l}</button>`).join('')+' | '
       +(['positions','early'].includes(mode)?'':['24h','7d','30d'].map(p=>`<button data-p="${p}" class="${p===period?'on':''}">${p.toUpperCase()}</button>`).join(''))
@@ -719,11 +768,11 @@ async wallets(){
     $('#bar').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.m)mode=b.dataset.m;else period=b.dataset.p;draw()});
     if($('#so'))$('#so').onchange=e=>{sort=e.target.value;draw()};
     $('#list').innerHTML=html;
-    $('#fr').innerHTML=`<div class="note" style="margin-top:12px">${note}</div>`+fresh(new Date().toISOString());
+    $('#fr').innerHTML=`<div class="note" style="margin-top:16px">${note}</div>`+fresh(new Date().toISOString());
   };
   $('#app').innerHTML=`
     <h2>WALLETS</h2>
-    <p class="sub">Verified API data and calculated metrics labeled.</p>
+    <p class="sub">Verified API data and calculated metrics clearly labeled.</p>
     <div class="bar" id="bar"></div>
     <div class="box" id="list"></div>
     <div id="fr"></div>`;
@@ -737,7 +786,7 @@ async wallet(a){
     const acc={};
     for(const t of d.trades){
       const k=t.tokens?.mint;if(!k)continue;
-      if(!acc[k])acc[k]={mint:k,symbol:t.tokens?.symbol??null,name:t.tokens?.name??null,bought:0,sold:0,trades:0};
+      if(!acc[k])acc[k]={mint:k,symbol:t.tokens?.symbol??null,name:t.tokens?.name??null,image_url:t.tokens?.image_url??null,bought:0,sold:0,trades:0};
       if(t.side==='buy')acc[k].bought+=Number(t.sol_amount);else acc[k].sold+=Number(t.sol_amount);
       acc[k].trades++;
     }
@@ -752,16 +801,27 @@ async wallet(a){
       ${['24h','7d','30d'].map(p=>{
         const x=d.performance.find(r=>r.period===p);
         return `<div class="k"><small>${p.toUpperCase()} PNL</small>
-          <div class="${x?pnlClass(x.combined_pnl):''}">${x?n(x.combined_pnl):'n/a'}</div>
-          <small class="delta">R ${x?n(x.realized_pnl):'n/a'} · U ${x?n(x.unrealized_pnl):'n/a'}</small></div>`;
+          <div class="${x?pnlClass(x.combined_pnl):''}">${x?n(x.combined_pnl):'—'}</div>
+          <small class="delta">R ${x?n(x.realized_pnl):'—'} · U ${x?n(x.unrealized_pnl):'—'}</small></div>`;
       }).join('')}
     </div>
-    ${port.length?`<div class="note">${label}</div><div class="box">${portTable(port)}</div><br>`:'<div class="note">No open positions.</div>'}
+    ${!d.performance.length?actionCard('⚡','WALLET PNL NOT TRACKED',
+      'No <code>wallet_performance</code> rows for this wallet — PnL cards stay empty until a leaderboard cron populates them.',
+      ['Trades below are always accurate (computed from real trades)','PnL cards require <code>wallet_performance</code> populated via cron']):''}
+    ${port.length?`<div class="note">${label}</div><div class="box"><table>
+      <tr><th>TOKEN</th><th>SYMBOL</th><th>NET SOL</th><th>TRADES</th></tr>
+      ${port.map(x=>`<tr>
+        <td><a class="l" href="#token/${esc(x.mint)}" style="display:inline-flex;align-items:center;gap:10px;vertical-align:middle">${tokenAvatar(x,22)}<span>${short(x.mint)}</span></a></td>
+        <td>${esc(x.symbol||x.name||'—')}</td>
+        <td class="buy">${n(x.net_sol)}</td>
+        <td>${x.trades||0}</td>
+      </tr>`).join('')}
+    </table></div><br>`:'<div class="note">No open positions for this wallet.</div>'}
     <div class="box">${d.trades.length?`<table>
       <tr><th>TIME</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>
       ${d.trades.map(t=>`<tr>
-        <td>${ago(t.block_time)}</td>
-        <td>${tokLink(t.tokens)} ${whaleBadge(t.sol_amount)}</td>
+        <td>${ago(t.block_time)} ago</td>
+        <td>${tokenCell(t.tokens,22)} ${whaleBadge(t.sol_amount)}</td>
         <td class="${t.side}">${t.side.toUpperCase()}</td>
         <td>${n(t.sol_amount)}</td>
       </tr>`).join('')}
@@ -771,7 +831,7 @@ async wallet(a){
 async token(m){
   if(!m){
     $('#app').innerHTML=`<h2>TOKEN INTEL</h2>
-      <p class="sub">Open any token from the feed, or paste a CA.</p>
+      <p class="sub">Open any token from the feed, or paste a contract address.</p>
       <div class="bar"><input id="ca" placeholder="Token contract address" style="width:420px"><button class="pri" onclick="location.hash='token/'+$('#ca').value.trim()">OPEN</button></div>`;
     return;
   }
@@ -779,10 +839,8 @@ async token(m){
   const smart=await getSmartWallets();
   const trades=d.trades;
 
-  // Compute token-specific signals
   const now=Date.now();
-  let vol_5m=0,vol_1h=0,vol_total=0,buy_sol=0,sell_sol=0;
-  let smart_buys=0,smart_sell=0;
+  let vol_5m=0,vol_1h=0,vol_total=0,buy_sol=0,sell_sol=0,smart_buys=0,smart_sell=0;
   const buyers=new Map();
   let first_seen=null;
   for(const x of trades){
@@ -799,17 +857,21 @@ async token(m){
   const buys=trades.filter(x=>x.side==='buy').length;
   const sells=trades.filter(x=>x.side==='sell').length;
   const buy_ratio=buys/Math.max(buys+sells,1);
-  const age_hrs=(now-first_seen)/3600000;
-
+  const age_hrs=first_seen?(now-first_seen)/3600000:0;
   const topBuyers=[...buyers.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
 
   $('#app').innerHTML=`
-    <h2>${esc(t.name||'Unknown')} <span style="color:var(--green)">${esc(t.symbol||'')}</span></h2>
-    <p class="sub mono">${esc(t.mint)} ${caBtn(t.mint)} ${star('token',t.mint)}</p>
+    <div style="display:flex;gap:20px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
+      ${tokenAvatar(t,72)}
+      <div style="flex:1;min-width:0">
+        <h2 style="margin:0;font-size:22px">${esc(t.name||'Unknown')} <span style="color:var(--green);font-size:18px">${esc(t.symbol||'')}</span></h2>
+        <p class="sub mono" style="margin:6px 0 0">${esc(t.mint)} ${caBtn(t.mint)} ${star('token',t.mint)}</p>
+      </div>
+    </div>
 
     <div class="grid">
       ${[['MARKET CAP',t.market_cap_usd],['PRICE',t.price_usd],['VOLUME 24H',t.volume_24h_usd],['LIQUIDITY',t.liquidity_usd]].map(([a,b])=>
-        `<div class="k"><small>${a}</small><div>${b!=null?'$'+n(b,6):'n/a'}</div></div>`).join('')}
+        `<div class="k"><small>${a}</small><div>${b!=null?'$'+n(b,6):'—'}</div></div>`).join('')}
     </div>
 
     <h2>MOMENTUM</h2>
@@ -834,7 +896,7 @@ async token(m){
       </tr>`).join('')}
     </table>`:empty('No buyers yet.',{icon:'👛'})}</div>
 
-    <h2 style="margin-top:20px">PUBLIC CALLS</h2>
+    <h2 style="margin-top:24px">PUBLIC CALLS</h2>
     <div class="box">${d.callouts.length?`<table>
       <tr><th>CALLER</th><th>WHEN</th><th>STATUS</th><th>MAX UPSIDE</th></tr>
       ${d.callouts.map(c=>`<tr>
@@ -845,11 +907,11 @@ async token(m){
       </tr>`).join('')}
     </table>`:empty('No public calls recorded.',{icon:'📞',title:'NO CALLS'})}</div>
 
-    <h2 style="margin-top:20px">RECENT TRADES</h2>
+    <h2 style="margin-top:24px">RECENT TRADES</h2>
     <div class="box">${trades.length?`<table>
       <tr><th>TIME</th><th>SIDE</th><th>SOL</th><th>WALLET</th></tr>
       ${trades.slice(0,50).map(x=>`<tr>
-        <td>${ago(x.block_time)}</td>
+        <td>${ago(x.block_time)} ago</td>
         <td class="${x.side}">${x.side.toUpperCase()}</td>
         <td>${n(x.sol_amount)} ${whaleBadge(x.sol_amount)}</td>
         <td><a class="l" href="#wallet/${esc(x.wallet)}">${short(x.wallet)}</a> ${smart.has(x.wallet)?'<span class="badge smart">S</span>':''}</td>
@@ -865,7 +927,7 @@ async callout(id){
     <p class="sub mono">caller ${esc(c.caller)} · ${c.called_at?ago(c.called_at)+' ago':'unverified'} ${star('callout',c.id)}</p>
     ${c.status==='incomplete'?'<div class="banner"><div><b>INCOMPLETE</b><div class="msg">Call time or entry price could not be verified.</div></div></div>':''}
     <div class="grid">
-      ${[['ENTRY MCAP',c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'n/a',''],
+      ${[['ENTRY MCAP',c.entry_market_cap_usd!=null?'$'+n(c.entry_market_cap_usd,0):'—',''],
         ['MAX UPSIDE',pct(c.max_upside_pct),'buy'],
         ['MAX DRAWDOWN',pct(c.max_drawdown_pct),'sell'],
         ['2X / 5X / 10X',[c.hit_2x,c.hit_5x,c.hit_10x].map(b=>b?'✔':'–').join(' '),'']]
@@ -876,7 +938,7 @@ async callout(id){
       ${['5m','15m','1h','6h','24h','7d'].map(i=>`<tr>
         <td>${i}</td>
         <td>${s[i]?'$'+n(s[i].market_cap_usd,0):'<span style="color:var(--muted)">not captured</span>'}</td>
-        <td class="${s[i]?pnlClass(s[i].return_pct):''}">${s[i]?pct(s[i].return_pct):'n/a'}</td>
+        <td class="${s[i]?pnlClass(s[i].return_pct):''}">${s[i]?pct(s[i].return_pct):'—'}</td>
       </tr>`).join('')}
     </table></div>
     <p class="fresh">Token <a class="l" href="#token/${esc(c.mint)}">${short(c.mint)}</a></p>`;
@@ -894,17 +956,17 @@ async watchlist(){
     <div class="box">${w.length?`<table>
       <tr><th>TYPE</th><th>REF</th><th></th></tr>
       ${w.map(x=>`<tr>
-        <td><span class="fresh-tag">${x.kind}</span></td>
+        <td><span class="badge warm">${x.kind}</span></td>
         <td><a class="l" href="#${x.kind==='callout'?'feed':x.kind}/${esc(x.ref)}">${esc(short(x.ref))}</a></td>
         <td><button onclick="api('/watchlist/${x.id}',{method:'DELETE'}).then(()=>{toast('Removed');route()})">REMOVE</button></td>
       </tr>`).join('')}
     </table>`:empty('Nothing followed yet. Use ☆ anywhere.',{icon:'⭐',title:'EMPTY',hint:'Click the star next to any wallet, caller, or token.'})}</div>
-    <h2 style="margin-top:24px">NOTIFICATIONS</h2>
+    <h2 style="margin-top:28px">NOTIFICATIONS</h2>
     <div class="box" id="nt">${empty('No notifications.',{icon:'🔔',title:'QUIET'})}</div>`;
   if(sb){
     const {data}=await sb.from('notifications').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false}).limit(30);
     if(data?.length)$('#nt').innerHTML=`<table>${data.map(x=>`<tr>
-      <td>${ago(x.created_at)}</td><td>${esc(x.title)}</td><td>${esc(x.body||'')}</td>
+      <td>${ago(x.created_at)} ago</td><td>${esc(x.title)}</td><td>${esc(x.body||'')}</td>
     </tr>`).join('')}</table>`;
     chan=sb.channel('rt-notif').on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+session.user.id},()=>route()).subscribe();
   }
@@ -917,7 +979,7 @@ async profile(){
       <h2>PROFILE</h2>
       <p class="sub">Native Phantom session — no Supabase auth, no signature.</p>
       <div class="grid">
-        <div class="k"><small>WALLET ADDRESS</small><div class="mono" style="font-size:11px;word-break:break-all">${esc(session.user.id)}</div></div>
+        <div class="k"><small>WALLET ADDRESS</small><div class="mono" style="font-size:12px;word-break:break-all">${esc(session.user.id)}</div></div>
       </div>
       <div class="bar">
         <button id="cp">COPY WALLET</button>
@@ -929,10 +991,10 @@ async profile(){
     $('#app').innerHTML=`
       <h2>PROFILE</h2>
       <div style="text-align:center;padding:60px 20px">
-        <div style="font-size:64px;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(153,69,255,.4))">👻</div>
-        <h2 style="justify-content:center;display:flex">CONNECT PHANTOM</h2>
-        <p class="sub" style="max-width:480px;margin:10px auto 24px">Sign in with your Solana wallet — no password, no email.</p>
-        <button class="pri" id="go" style="padding:12px 28px;font-size:13px;letter-spacing:.1em">CONNECT WALLET →</button>
+        <div style="font-size:72px;margin-bottom:24px;filter:drop-shadow(0 0 24px rgba(153,69,255,.5))">👻</div>
+        <h2 style="justify-content:center;display:flex;font-size:20px">CONNECT PHANTOM</h2>
+        <p class="sub" style="max-width:480px;margin:14px auto 28px">Sign in with your Solana wallet. No password, no email.</p>
+        <button class="pri" id="go" style="padding:14px 32px;font-size:14px;letter-spacing:.1em">CONNECT WALLET →</button>
         <p class="fresh" id="er"></p>
       </div>`;
     $('#go').onclick=async()=>{
