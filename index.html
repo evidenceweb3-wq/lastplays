@@ -486,7 +486,7 @@ const warnBanner=s=>{
     return `<div class="banner danger"><div><b>⚠ WEBHOOK ERROR</b><div class="msg">${esc(h.last_error||'Unknown error')}</div></div></div>`;
   if(h.last_run_at){
     const age=(Date.now()-new Date(h.last_run_at))/60000;
-    if(age>15)return `<div class="banner"><div><b>IDLE FEED</b><div class="msg">No trades in ${~~age}m. The webhook is fine, market is just quiet.</div></div></div>`;
+    if(age>120)return `<div class="banner"><div><b>IDLE FEED</b><div class="msg">No trades in ${~~age}m. Check Helius webhook status.</div></div></div>`;
   }
   return '';
 };
@@ -497,13 +497,13 @@ function subscribe(table,cb){if(!sb)return;chan=sb.channel('rt-'+table).on('post
 async function status(){
   try{
     const s=await api('/status');lastStatus=s;
-    const stale=t=>{if(!t)return'missing';const m=(Date.now()-new Date(t))/60000;if(m<5)return'ok';if(m<60)return'idle';return'old'};
+    // Updated stale logic: 2 hours is "idle" (yellow), only true failures are red
+    const stale=t=>{if(!t)return'missing';const m=(Date.now()-new Date(t))/60000;if(m<15)return'ok';if(m<1440)return'idle';return'old'};
     const h=s.ingestion.find(r=>r.source==='helius');
     const pf=s.ingestion.find(r=>r.source==='pumpfun');
     const hS=h?stale(h.last_run_at):'missing';
     const pfS=pf?stale(pf.last_run_at):'missing';
     
-    // Change logic to show "IDLE" instead of "OLD"
     const cls=(st,stt)=>{if(stt==='error')return'bad';if(st==='ok')return'ok';if(st==='idle')return'warn';return'bad'};
     const sfx=st=>st==='idle'?' ·IDLE':st==='old'?' ·OFF':st==='missing'?' ·—':'';
     
