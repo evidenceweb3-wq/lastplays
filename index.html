@@ -486,7 +486,7 @@ const warnBanner=s=>{
     return `<div class="banner danger"><div><b>⚠ WEBHOOK ERROR</b><div class="msg">${esc(h.last_error||'Unknown error')}</div></div></div>`;
   if(h.last_run_at){
     const age=(Date.now()-new Date(h.last_run_at))/60000;
-    if(age>15)return `<div class="banner"><div><b>STALE FEED</b><div class="msg">Last trade ${~~age}m ago. Check Helius webhook status.</div></div></div>`;
+    if(age>15)return `<div class="banner"><div><b>IDLE FEED</b><div class="msg">No trades in ${~~age}m. The webhook is fine, market is just quiet.</div></div></div>`;
   }
   return '';
 };
@@ -497,13 +497,16 @@ function subscribe(table,cb){if(!sb)return;chan=sb.channel('rt-'+table).on('post
 async function status(){
   try{
     const s=await api('/status');lastStatus=s;
-    const stale=t=>{if(!t)return'missing';const m=(Date.now()-new Date(t))/60000;if(m<3)return'ok';if(m<15)return'stale';return'old'};
+    const stale=t=>{if(!t)return'missing';const m=(Date.now()-new Date(t))/60000;if(m<5)return'ok';if(m<60)return'idle';return'old'};
     const h=s.ingestion.find(r=>r.source==='helius');
     const pf=s.ingestion.find(r=>r.source==='pumpfun');
     const hS=h?stale(h.last_run_at):'missing';
     const pfS=pf?stale(pf.last_run_at):'missing';
-    const cls=(st,stt)=>{if(stt==='error')return'bad';if(st==='ok')return'ok';if(st==='stale')return'warn';return'bad'};
-    const sfx=st=>st==='stale'?' ·STALE':st==='old'?' ·OLD':st==='missing'?' ·—':'';
+    
+    // Change logic to show "IDLE" instead of "OLD"
+    const cls=(st,stt)=>{if(stt==='error')return'bad';if(st==='ok')return'ok';if(st==='idle')return'warn';return'bad'};
+    const sfx=st=>st==='idle'?' ·IDLE':st==='old'?' ·OFF':st==='missing'?' ·—':'';
+    
     $('#conn').innerHTML=[
       `<span class="pill ok">DB LIVE</span>`,
       `<span class="pill ${cls(pfS,pf?.last_status)}">PUMP${sfx(pfS)}</span>`,
@@ -630,7 +633,6 @@ async traders(){
     if(sort==='volume')rows=[...rows].sort((a,b)=>Number(b.volume)-Number(a.volume));
     else if(sort==='biggest')rows=[...rows].sort((a,b)=>Number(b.biggest_trade)-Number(a.biggest_trade));
     else if(sort==='trades')rows=[...rows].sort((a,b)=>Number(b.total_trades)-Number(a.total_trades));
-    // default: net_flow (already sorted by RPC)
 
     $('#list').innerHTML=rows.length?`<table>
       <tr><th>#</th><th>WALLET</th><th>NET FLOW</th><th>VOLUME</th><th>TRADES</th><th>TOKENS</th><th>BIGGEST</th><th>LAST</th></tr>
