@@ -3,203 +3,71 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>KOL Tracker — Pro</title>
+<title>KOL Tracker — Pump.fun & On-Chain Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #0b0e11;
-    --surface: #151a21;
-    --surface-hover: #1c232b;
-    --border: #2a313a;
-    --text: #e6edf3;
-    --text-dim: #8b949e;
-    --green: #3fb950;
-    --red: #f85149;
-    --blue: #58a6ff;
-    --gold: #d29922;
-    --purple: #bc8cff;
+    --bg: #0b0e11; --surface: #151a21; --surface-hover: #1c232b;
+    --border: #2a313a; --text: #e6edf3; --text-dim: #8b949e;
+    --green: #3fb950; --red: #f85149; --blue: #58a6ff;
+    --gold: #d29922; --purple: #bc8cff; --pump-pink: #ff6b9d;
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  body {
-    font: 14px/1.55 system-ui, -apple-system, sans-serif;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px 16px 80px;
-    background: var(--bg);
-    color: var(--text);
-  }
+  body { font: 14px/1.55 system-ui, -apple-system, sans-serif; max-width: 1400px; margin: 0 auto; padding: 24px 16px 80px; background: var(--bg); color: var(--text); }
   h1, h2, h3 { margin: 0; font-weight: 600; }
   h1 { font-size: 22px; letter-spacing: -0.5px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin: 28px 0 12px; }
-  button {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: inherit;
-    font-weight: 500;
-    transition: background 0.15s, border-color 0.15s;
-  }
+  button { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-weight: 500; transition: background 0.15s, border-color 0.15s; }
   button:hover { background: var(--surface-hover); border-color: #3d444d; }
   button.primary { background: #238636; border-color: #2ea043; }
   button.primary:hover { background: #2ea043; }
   button.ghost { background: transparent; }
   button.ghost:hover { background: var(--surface); }
   button.tiny { padding: 3px 8px; font-size: 11px; }
-  input {
-    background: #010409;
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 9px 12px;
-    border-radius: 8px;
-    font: inherit;
-    width: 100%;
-  }
+  input { background: #010409; border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 8px; font: inherit; width: 100%; }
   input:focus { outline: none; border-color: var(--blue); }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .muted { color: var(--text-dim); font-size: 12px; }
-  .pill {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 2px 10px;
-    font-size: 11px;
-    font-weight: 600;
-  }
+  .pill { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
   .pill.ok { color: var(--green); border-color: #1f4a2a; }
   .pill.err { color: var(--red); border-color: #5a1d1d; }
   code { font: 12px ui-monospace, monospace; color: var(--blue); word-break: break-all; }
 
-  /* Error console */
-  #log {
-    background: #1a0d0d;
-    border: 1px solid #5a1d1d;
-    border-radius: 8px;
-    padding: 10px;
-    font: 12px ui-monospace, monospace;
-    color: #ff9b9b;
-    max-height: 160px;
-    overflow: auto;
-    white-space: pre-wrap;
-    margin: 16px 0;
-  }
+  #log { background: #1a0d0d; border: 1px solid #5a1d1d; border-radius: 8px; padding: 10px; font: 12px ui-monospace, monospace; color: #ff9b9b; max-height: 160px; overflow: auto; white-space: pre-wrap; margin: 16px 0; }
 
-  /* Header */
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
-  }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
 
-  /* The Board */
-  .board {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 14px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    transition: border-color 0.2s;
-  }
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color 0.2s; display: flex; flex-direction: column; }
   .card:hover { border-color: #3d444d; }
 
-  .card-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  .avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #21262d;
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .avatar-fallback {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #1f6feb, #bc8cff);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 16px;
-    color: #fff;
-    flex-shrink: 0;
-  }
+  .card-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #21262d; border: 1px solid var(--border); flex-shrink: 0; }
+  .avatar-fallback { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #1f6feb, #bc8cff); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; flex-shrink: 0; }
   .kol-name { font-weight: 600; font-size: 15px; line-height: 1.2; }
   .kol-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .stat {
-    background: #0d1117;
-    border: 1px solid #21262d;
-    border-radius: 8px;
-    padding: 8px 10px;
-  }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 8px 10px; }
   .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
   .stat-value { font-size: 15px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .positive { color: var(--green); }
-  .negative { color: var(--red); }
-  .neutral { color: var(--text); }
+  .positive { color: var(--green); } .negative { color: var(--red); } .neutral { color: var(--text); }
 
-  .token-strip {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .token-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #0d1117;
-    border: 1px solid #21262d;
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 11px;
-  }
+  .token-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .token-chip { display: inline-flex; align-items: center; gap: 5px; background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
   .token-chip img { width: 14px; height: 14px; border-radius: 50%; }
 
-  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
+  .empty { grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 12px; }
 
-  .empty {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 48px 16px;
-    color: var(--text-dim);
-    border: 1px dashed var(--border);
-    border-radius: 12px;
-  }
-
-  /* Token lookup result */
-  .pair-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 8px;
-  }
+  .feed-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; align-items: center; }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-icon { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+  .feed-body { flex: 1; min-width: 0; }
+  .feed-title { font-weight: 500; font-size: 13px; }
+  .feed-meta { font-size: 11px; color: var(--text-dim); }
+  .pump-badge { background: var(--pump-pink); color: #000; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -207,7 +75,7 @@
 <div class="topbar">
   <div>
     <h1>KOL Tracker <span id="modePill" class="pill">…</span></h1>
-    <p class="muted" style="margin:4px 0 0;">Balances · PnL · Token images · Powered by Helius, DexScreener & WalletIntel</p>
+    <p class="muted" style="margin:4px 0 0;">Balances · KOL Trades · Pump.fun · Powered by Helius, MadeOnSol & Bitquery</p>
   </div>
   <div class="row">
     <button id="connectBtn" class="primary">Connect Phantom</button>
@@ -225,13 +93,17 @@
 </form>
 
 <div class="row" style="margin-bottom:16px;">
-  <button id="syncAllBtn" class="ghost">↻ Sync All Balances & PnL</button>
-  <span class="muted">Fetches live data for every wallet</span>
+  <button id="syncAllBtn" class="ghost">↻ Sync All Balances & Activity</button>
 </div>
 
 <h2>Tracked KOLs</h2>
 <div id="board" class="board">
   <div class="empty">Loading…</div>
+</div>
+
+<h2>Live KOL Trade Feed</h2>
+<div id="kolFeed" class="card" style="padding:0 16px;">
+  <div class="empty">Sync KOLs to load trade activity.</div>
 </div>
 
 <h2>Token Lookup · DexScreener</h2>
@@ -243,51 +115,45 @@
 
 <script type="module">
 /* =========================================================
-   1. CONFIG
+   1. CONFIG & LOGGER
    ========================================================= */
 const CFG = {
   SUPABASE_URL: 'https://jhdatgmduljewlzsslfa.supabase.co',
   SUPABASE_KEY: 'sb_publishable_xDgvsSrwzCDiIXdP6PpGzQ_SldVwqzv',
   HELIUS_KEY:   'fa7e6515-19de-45de-a7d1-35a64a0d9a1a',
-  // WalletIntel is free & keyless. Base URL for the score endpoint.
-  WALLETINTEL_BASE: 'https://wallet.lonestaroracle.xyz/score?address='
+  // Free tier: 200 req/day. Get a key at madeonsol.com/pricing
+  MADEONSOL_KEY: 'YOUR_MADEONSOL_API_KEY',
+  // Bitquery OAuth token for Pump.fun data. Get one at bitquery.io
+  BITQUERY_TOKEN: 'YOUR_BITQUERY_ACCESS_TOKEN'
 };
 
-/* =========================================================
-   2. LOGGER & DOM
-   ========================================================= */
 const logEl = document.getElementById('log');
 function logErr(where, e) {
   logEl.hidden = false;
-  const msg = e?.message || e?.error_description || String(e);
-  logEl.textContent += `[${where}] ${msg}\n`;
-  console.error('[' + where + ']', e);
+  logEl.textContent += `[${where}] ${e?.message || String(e)}\n`;
+  console.error(`[${where}]`, e);
 }
 window.addEventListener('error', e => logErr('window', e.error || e.message));
 window.addEventListener('unhandledrejection', e => logErr('promise', e.reason));
 
-const boardEl   = document.getElementById('board');
-const modePill  = document.getElementById('modePill');
-const whoEl     = document.getElementById('who');
+const boardEl  = document.getElementById('board');
+const feedEl   = document.getElementById('kolFeed');
+const modePill = document.getElementById('modePill');
+const whoEl    = document.getElementById('who');
 
 /* =========================================================
-   3. SUPABASE (Publishable key + anonymous RLS)
+   2. SUPABASE (Publishable key + anonymous RLS)
    ========================================================= */
 let sb = null;
 try {
   sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
-  modePill.textContent = 'SUPABASE';
-  modePill.className = 'pill ok';
+  modePill.textContent = 'SUPABASE'; modePill.className = 'pill ok';
 } catch (e) {
   logErr('supabase init', e);
-  modePill.textContent = 'LOCAL';
-  modePill.className = 'pill err';
+  modePill.textContent = 'LOCAL'; modePill.className = 'pill err';
 }
 
-/* =========================================================
-   4. STORAGE (Supabase with localStorage fallback)
-   ========================================================= */
-const LS_KEY = 'kol_tracker_pro_v3';
+const LS_KEY = 'kol_tracker_epic_v4';
 const local = {
   read:  () => JSON.parse(localStorage.getItem(LS_KEY) || '[]'),
   write: rows => localStorage.setItem(LS_KEY, JSON.stringify(rows))
@@ -295,79 +161,83 @@ const local = {
 
 async function listKols() {
   if (!sb) return local.read();
-  const { data, error } = await sb
-    .from('kols')
-    .select('id,name,owner_wallet,created_at,kol_wallets(wallet_address)')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data;
+  const { data, error } = await sb.from('kols').select('id,name,owner_wallet,created_at,kol_wallets(wallet_address)').order('created_at', { ascending: false });
+  if (error) throw error; return data;
 }
-
 async function addKol(name, wallet, ownerWallet) {
   if (!sb) {
     const rows = local.read();
     rows.unshift({ id: crypto.randomUUID(), name, owner_wallet: ownerWallet || null, kol_wallets: [{ wallet_address: wallet }] });
-    local.write(rows);
-    return;
+    local.write(rows); return;
   }
-  const { data: kol, error: e1 } = await sb
-    .from('kols')
-    .insert({ name, owner_wallet: ownerWallet || null })
-    .select('id')
-    .single();
+  const { data: kol, error: e1 } = await sb.from('kols').insert({ name, owner_wallet: ownerWallet || null }).select('id').single();
   if (e1) throw e1;
-  const { error: e2 } = await sb
-    .from('kol_wallets')
-    .insert({ kol_id: kol.id, wallet_address: wallet });
+  const { error: e2 } = await sb.from('kol_wallets').insert({ kol_id: kol.id, wallet_address: wallet });
   if (e2) throw e2;
 }
 
 /* =========================================================
-   5. PHANTOM
+   3. PHANTOM
    ========================================================= */
 const provider = window.phantom?.solana ?? window.solana;
 let currentWallet = null;
-
 document.getElementById('connectBtn').addEventListener('click', async () => {
   try {
-    if (!provider) throw new Error('Phantom not detected. Install the extension.');
+    if (!provider) throw new Error('Phantom not detected.');
     const res = await provider.connect();
     currentWallet = res.publicKey.toString();
     localStorage.setItem('walletAddress', currentWallet);
     whoEl.textContent = `Connected: ${currentWallet.slice(0,4)}…${currentWallet.slice(-4)}`;
-    if (provider.on) {
-      provider.on('disconnect', () => {
-        currentWallet = null;
-        localStorage.removeItem('walletAddress');
-        whoEl.textContent = 'Not connected';
-      });
-    }
   } catch (e) { logErr('phantom', e); }
 });
 
 /* =========================================================
-   6. DATA FETCHERS
+   4. DATA FETCHERS (The New Stack)
    ========================================================= */
 
-/* --- 6a. Helius Wallet Balances (REST) --- */
+/* --- 4a. Helius: Wallet Balances & Token Logos --- */
 async function fetchBalances(address) {
-  const url = `https://api.helius.xyz/v1/wallet/${address}/balances?api-key=${CFG.HELIUS_KEY}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Helius balances HTTP ${r.status}`);
-  const data = await r.json();
-  // Shape: { totalUsdValue, items: [ { mint, symbol, imageUrl, balance, usdValue, ... } ] }
-  return data;
-}
-
-/* --- 6b. WalletIntel Score (PnL, Win Rate, Strategy) --- */
-async function fetchWalletIntel(address) {
-  const url = `${CFG.WALLETINTEL_BASE}${address}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`WalletIntel HTTP ${r.status}`);
+  const r = await fetch(`https://api.helius.xyz/v1/wallet/${address}/balances?api-key=${CFG.HELIUS_KEY}`);
+  if (!r.ok) throw new Error(`Helius HTTP ${r.status}`);
   return r.json();
 }
 
-/* --- 6c. DexScreener Token Lookup (price + icon) --- */
+/* --- 4b. MadeOnSol: KOL Profile & Recent Trades --- */
+async function fetchMadeOnSolProfile(address) {
+  // Note: This is a simplified call. The full SDK offers more structured methods.
+  // For the free tier, a direct REST call to their profile endpoint works.
+  const r = await fetch(`https://api.madeonsol.com/v1/kol/wallet/${address}`, {
+    headers: { 'Authorization': `Bearer ${CFG.MADEONSOL_KEY}` }
+  });
+  if (!r.ok) throw new Error(`MadeOnSol HTTP ${r.status}`);
+  return r.json(); // Contains { stats: { pnl, winRate }, recent_trades: [...] }
+}
+
+/* --- 4c. Bitquery: Pump.fun Token Data (Placeholder) --- */
+async function fetchPumpFunData(mint) {
+  const query = `
+    query {
+      Solana(dataset: combined) {
+        DEXTradeByTokens(
+          where: {Trade: {Currency: {MintAddress: {is: "${mint}"}}}, Transaction: {Result: {Success: true}}}
+          limit: {count: 1}
+          orderBy: {descending: Block_Time}
+        ) {
+          Trade { PriceInUSD Market { MarketAddress } }
+        }
+      }
+    }
+  `;
+  const r = await fetch('https://streaming.bitquery.io/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CFG.BITQUERY_TOKEN}` },
+    body: JSON.stringify({ query })
+  });
+  if (!r.ok) throw new Error(`Bitquery HTTP ${r.status}`);
+  return r.json();
+}
+
+/* --- 4d. DexScreener (Existing) --- */
 async function fetchDexScreener(mint) {
   const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
   if (!r.ok) throw new Error(`DexScreener HTTP ${r.status}`);
@@ -375,16 +245,8 @@ async function fetchDexScreener(mint) {
   return (data.pairs || []).filter(p => p.chainId === 'solana');
 }
 
-/* --- 6d. Helius Tx History (for the drawer) --- */
-async function fetchTxs(address) {
-  const url = `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${CFG.HELIUS_KEY}&limit=8`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Helius tx HTTP ${r.status}`);
-  return r.json();
-}
-
 /* =========================================================
-   7. RENDER HELPERS
+   5. RENDER HELPERS
    ========================================================= */
 function el(tag, props = {}, ...kids) {
   const n = document.createElement(tag);
@@ -392,7 +254,6 @@ function el(tag, props = {}, ...kids) {
   kids.forEach(k => n.append(k));
   return n;
 }
-
 function short(addr) { return addr ? `${addr.slice(0,4)}…${addr.slice(-4)}` : '—'; }
 function fmtUsd(n) {
   if (n == null || isNaN(n)) return '—';
@@ -400,21 +261,6 @@ function fmtUsd(n) {
   if (abs >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
   if (abs >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
   return `$${n.toFixed(2)}`;
-}
-function fmtPct(n) {
-  if (n == null || isNaN(n)) return '—';
-  return `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
-}
-function avatarFor(name, imageUrl) {
-  if (imageUrl) {
-    const img = document.createElement('img');
-    img.className = 'avatar';
-    img.src = imageUrl;
-    img.alt = name;
-    img.onerror = () => { img.replaceWith(fallbackAvatar(name)); };
-    return img;
-  }
-  return fallbackAvatar(name);
 }
 function fallbackAvatar(name) {
   const d = document.createElement('div');
@@ -424,31 +270,24 @@ function fallbackAvatar(name) {
 }
 
 /* =========================================================
-   8. THE BOARD RENDERER
+   6. THE BOARD RENDERER (Upgraded)
    ========================================================= */
-
-/* In-memory cache so we don't hammer APIs on every re-render */
-const cache = new Map(); // address -> { balances, intel, ts }
-
+const cache = new Map();
 async function loadWalletData(address, force = false) {
   const now = Date.now();
   const hit = cache.get(address);
-  if (!force && hit && now - hit.ts < 60_000) return hit; // 60s cache
+  if (!force && hit && now - hit.ts < 120_000) return hit; // 2 min cache
 
-  const result = { balances: null, intel: null, ts: now, error: null };
-  try {
-    // Run both fetches in parallel
-    const [bal, intel] = await Promise.allSettled([
-      fetchBalances(address),
-      fetchWalletIntel(address)
-    ]);
-    if (bal.status === 'fulfilled') result.balances = bal.value;
-    else result.error = (result.error ? result.error + '; ' : '') + bal.reason?.message;
-    if (intel.status === 'fulfilled') result.intel = intel.value;
-    else result.error = (result.error ? result.error + '; ' : '') + intel.reason?.message;
-  } catch (e) {
-    result.error = e.message;
-  }
+  const result = { balances: null, profile: null, ts: now, error: null };
+  const [bal, prof] = await Promise.allSettled([
+    fetchBalances(address),
+    fetchMadeOnSolProfile(address)
+  ]);
+  if (bal.status === 'fulfilled') result.balances = bal.value;
+  else result.error = (result.error ? result.error + '; ' : '') + bal.reason?.message;
+  if (prof.status === 'fulfilled') result.profile = prof.value;
+  else result.error = (result.error ? result.error + '; ' : '') + prof.reason?.message;
+
   cache.set(address, result);
   return result;
 }
@@ -456,11 +295,10 @@ async function loadWalletData(address, force = false) {
 async function renderBoard(forceSync = false) {
   boardEl.innerHTML = '<div class="empty">Loading KOLs…</div>';
   let rows;
-  try {
-    rows = await listKols();
-  } catch (e) {
+  try { rows = await listKols(); }
+  catch (e) {
     logErr('list KOLs', e);
-    boardEl.innerHTML = '<div class="empty">Could not load KOLs. Check Supabase RLS / SQL.</div>';
+    boardEl.innerHTML = '<div class="empty">Could not load KOLs. Check Supabase RLS.</div>';
     return;
   }
   if (!rows.length) {
@@ -469,27 +307,19 @@ async function renderBoard(forceSync = false) {
   }
 
   boardEl.innerHTML = '';
-
-  // Build skeleton cards first so the UI feels instant
-  const cards = new Map(); // address -> { cardEl, slots }
-
+  const cards = new Map();
   rows.forEach(kol => {
-    const wallets = (kol.kol_wallets || []).map(w => w.wallet_address);
-    wallets.forEach(addr => {
-      if (cards.has(addr)) return; // de-dupe wallets across KOLs
+    (kol.kol_wallets || []).forEach(w => {
+      const addr = w.wallet_address;
+      if (cards.has(addr)) return;
 
       const card = el('div', { className: 'card' });
-
-      // Header
       const head = el('div', { className: 'card-head' });
-      const name = kol.name;
-      const avatarHost = el('div');
-      // Try to get an image from DexScreener or a token logo later; start with fallback
-      avatarHost.append(fallbackAvatar(name));
+      const avatarHost = el('div'); avatarHost.append(fallbackAvatar(kol.name));
       head.append(avatarHost);
 
       const nameBox = el('div', { style: 'flex:1; min-width:0;' });
-      nameBox.append(el('div', { className: 'kol-name' }, name));
+      nameBox.append(el('div', { className: 'kol-name' }, kol.name));
       nameBox.append(el('div', { className: 'kol-meta' },
         el('code', {}, short(addr)), ' · ',
         el('a', { href: `https://solscan.io/account/${addr}`, target: '_blank', className: 'muted', style: 'text-decoration:none;' }, 'Solscan ↗')
@@ -497,205 +327,173 @@ async function renderBoard(forceSync = false) {
       head.append(nameBox);
       card.append(head);
 
-      // Stats grid (placeholders)
       const stats = el('div', { className: 'stats' });
       const mkStat = (label) => {
         const box = el('div', { className: 'stat' });
         box.append(el('div', { className: 'stat-label' }, label));
         const val = el('div', { className: 'stat-value neutral' }, '…');
-        box.append(val);
-        stats.append(box);
-        return val;
+        box.append(val); stats.append(box); return val;
       };
       const balSlot = mkStat('Balance');
-      const pnlSlot = mkStat('PnL');
+      const pnlSlot = mkStat('PnL (Realized)');
       const winSlot = mkStat('Win Rate');
       card.append(stats);
 
-      // Token strip
       const tokenStrip = el('div', { className: 'token-strip' });
       card.append(tokenStrip);
 
-      // Actions
       const actions = el('div', { className: 'actions' });
-      const txBtn = el('button', { className: 'ghost tiny', textContent: 'Recent Txs' });
-      txBtn.onclick = () => showTxs(addr, card);
+      const txBtn = el('button', { className: 'ghost tiny', textContent: 'Trades' });
+      txBtn.onclick = () => showFeedForWallet(addr, txBtn);
       actions.append(txBtn);
       const refreshBtn = el('button', { className: 'ghost tiny', textContent: '↻' });
       refreshBtn.onclick = async () => {
         cache.delete(addr);
-        refreshBtn.disabled = true;
-        refreshBtn.textContent = '…';
-        await hydrateCard(addr, { balSlot, pnlSlot, winSlot, tokenStrip, avatarHost, name }, true);
-        refreshBtn.disabled = false;
-        refreshBtn.textContent = '↻';
+        refreshBtn.disabled = true; refreshBtn.textContent = '…';
+        await hydrateCard(addr, { balSlot, pnlSlot, winSlot, tokenStrip, name: kol.name }, true);
+        refreshBtn.disabled = false; refreshBtn.textContent = '↻';
       };
       actions.append(refreshBtn);
       card.append(actions);
 
       boardEl.append(card);
-      cards.set(addr, { balSlot, pnlSlot, winSlot, tokenStrip, avatarHost, name });
+      cards.set(addr, { balSlot, pnlSlot, winSlot, tokenStrip, name: kol.name });
     });
   });
 
-  // Now hydrate every card in parallel (but throttled by the browser)
-  const tasks = [];
   for (const [addr, slots] of cards.entries()) {
-    tasks.push(hydrateCard(addr, slots, forceSync));
+    hydrateCard(addr, slots, forceSync);
   }
-  await Promise.allSettled(tasks);
 }
 
 async function hydrateCard(addr, slots, force) {
   const data = await loadWalletData(addr, force);
 
-  // --- Balance ---
   if (data.balances) {
-    const total = data.balances.totalUsdValue;
-    slots.balSlot.textContent = fmtUsd(total);
-    slots.balSlot.className = 'stat-value ' + (total > 0 ? 'neutral' : 'muted');
-
-    // Token strip: show up to 4 non-zero tokens with logos
-    const items = (data.balances.items || [])
-      .filter(t => t.usdValue > 1)
-      .sort((a, b) => (b.usdValue || 0) - (a.usdValue || 0))
-      .slice(0, 4);
+    slots.balSlot.textContent = fmtUsd(data.balances.totalUsdValue);
+    const items = (data.balances.items || []).filter(t => t.usdValue > 1).sort((a,b) => (b.usdValue||0)-(a.usdValue||0)).slice(0, 4);
     slots.tokenStrip.innerHTML = '';
     items.forEach(t => {
       const chip = el('span', { className: 'token-chip' });
-      if (t.imageUrl) {
-        const img = document.createElement('img');
-        img.src = t.imageUrl;
-        img.alt = t.symbol;
-        img.onerror = () => { img.remove(); };
-        chip.append(img);
-      }
+      if (t.imageUrl) { const img = document.createElement('img'); img.src = t.imageUrl; img.alt = t.symbol; img.onerror = () => img.remove(); chip.append(img); }
       chip.append(el('span', {}, `${t.symbol || '???'} ${fmtUsd(t.usdValue)}`));
       slots.tokenStrip.append(chip);
     });
-    if (!items.length) {
-      slots.tokenStrip.append(el('span', { className: 'muted' }, 'No significant token holdings'));
-    }
+    if (!items.length) slots.tokenStrip.append(el('span', { className: 'muted' }, 'No significant holdings'));
   } else if (data.error) {
-    slots.balSlot.textContent = 'err';
-    slots.balSlot.className = 'stat-value negative';
-    slots.balSlot.title = data.error;
+    slots.balSlot.textContent = 'err'; slots.balSlot.title = data.error;
   }
 
-  // --- PnL & Win Rate ---
-  if (data.intel) {
-    const pnl = data.intel.realizedPnl ?? data.intel.pnl ?? null;
-    if (pnl != null) {
-      slots.pnlSlot.textContent = fmtUsd(pnl);
-      slots.pnlSlot.className = 'stat-value ' + (pnl >= 0 ? 'positive' : 'negative');
-    } else {
-      slots.pnlSlot.textContent = '—';
-    }
-
-    const wr = data.intel.winRate != null ? data.intel.winRate * 100 : null;
-    if (wr != null) {
-      slots.winSlot.textContent = fmtPct(wr);
-      slots.winSlot.className = 'stat-value ' + (wr >= 50 ? 'positive' : 'negative');
-    } else {
-      slots.winSlot.textContent = '—';
-    }
-
-    // Optional: use strategy to tweak the card border color
-    const strategy = (data.intel.strategy || '').toLowerCase();
-    if (strategy.includes('snipe')) slots.pnlSlot.style.color = 'var(--gold)';
-    if (strategy.includes('diamond')) slots.pnlSlot.style.color = 'var(--purple)';
+  if (data.profile?.stats) {
+    const { pnl, winRate } = data.profile.stats;
+    if (pnl != null) { slots.pnlSlot.textContent = fmtUsd(pnl); slots.pnlSlot.className = 'stat-value ' + (pnl >= 0 ? 'positive' : 'negative'); }
+    if (winRate != null) { slots.winSlot.textContent = `${(winRate*100).toFixed(1)}%`; slots.winSlot.className = 'stat-value ' + (winRate >= 0.5 ? 'positive' : 'negative'); }
   }
 }
 
 /* =========================================================
-   9. ACTIONS
+   7. ACTIONS & FEED RENDERING
    ========================================================= */
 document.getElementById('kolForm').addEventListener('submit', async ev => {
   ev.preventDefault();
-  const name   = document.getElementById('kolName').value.trim();
+  const name = document.getElementById('kolName').value.trim();
   const wallet = document.getElementById('kolWallet').value.trim();
   if (!name || !wallet) return;
-  try {
-    await addKol(name, wallet, currentWallet);
-    ev.target.reset();
-    await renderBoard();
-  } catch (e) { logErr('add KOL', e); }
+  try { await addKol(name, wallet, currentWallet); ev.target.reset(); await renderBoard(); }
+  catch (e) { logErr('add KOL', e); }
 });
 
 document.getElementById('syncAllBtn').addEventListener('click', async () => {
   cache.clear();
   await renderBoard(true);
+  feedEl.innerHTML = '<div class="empty">Feed cleared. Click "Trades" on a card to reload.</div>';
 });
 
-/* --- Token Lookup --- */
+/* --- Feed for a single wallet (uses MadeOnSol recent_trades) --- */
+async function showFeedForWallet(addr, triggerBtn) {
+  feedEl.innerHTML = '<div class="empty">Loading recent trades…</div>';
+  triggerBtn.disabled = true; triggerBtn.textContent = '…';
+  try {
+    const data = await loadWalletData(addr);
+    feedEl.innerHTML = '';
+    const trades = data.profile?.recent_trades || [];
+    if (!trades.length) { feedEl.append(el('div', { className: 'empty' }, 'No recent trades found for this wallet.')); return; }
+
+    trades.slice(0, 10).forEach(t => {
+      const item = el('div', { className: 'feed-item' });
+      // Use token icon if available, else fallback
+      const iconHost = el('div'); iconHost.className = 'feed-icon';
+      // (In a full build, you'd fetch the token icon from DexScreener here)
+      feedEl.append(item);
+
+      const body = el('div', { className: 'feed-body' });
+      const title = el('div', { className: 'feed-title' });
+      title.append(el('strong', {}, `${t.action?.toUpperCase() || 'TRADE'} `));
+      title.append(el('span', {}, t.token_symbol || short(t.token_mint) || 'Unknown'));
+      if (t.is_pumpfun) title.append(el('span', { className: 'pump-badge' }, 'Pump.fun'));
+      body.append(title);
+      body.append(el('div', { className: 'feed-meta' },
+        `${new Date(t.timestamp).toLocaleString()} · Amount: ${t.amount || '—'}`
+      ));
+      item.append(body);
+    });
+  } catch (e) {
+    logErr('feed', e);
+    feedEl.innerHTML = '<div class="empty">Failed to load trades. See log.</div>';
+  } finally {
+    triggerBtn.disabled = false; triggerBtn.textContent = 'Trades';
+  }
+}
+
+/* =========================================================
+   8. TOKEN LOOKUP (DexScreener + Bitquery Pump.fun)
+   ========================================================= */
 document.getElementById('lookupBtn').addEventListener('click', async () => {
   const mint = document.getElementById('mint').value.trim();
   const out = document.getElementById('tokenOut');
-  out.innerHTML = '';
-  if (!mint) return;
+  out.innerHTML = ''; if (!mint) return;
+
   try {
     const pairs = await fetchDexScreener(mint);
     if (!pairs.length) { out.textContent = 'No Solana pairs found.'; return; }
-    pairs.slice(0, 5).forEach(p => {
-      const card = el('div', { className: 'pair-card' });
+    pairs.slice(0, 3).forEach(p => {
+      const card = el('div', { className: 'card', style: 'margin-bottom:10px;' });
       const row = el('div', { className: 'row' });
       if (p.info?.imageUrl) {
         const img = document.createElement('img');
-        img.src = p.info.imageUrl;
-        img.style.width = '24px'; img.style.height = '24px'; img.style.borderRadius = '50%';
-        img.onerror = () => img.remove();
-        row.append(img);
+        img.src = p.info.imageUrl; img.style.width='24px'; img.style.height='24px'; img.style.borderRadius='50%';
+        img.onerror = () => img.remove(); row.append(img);
       }
       row.append(el('strong', {}, `${p.baseToken.symbol}/${p.quoteToken.symbol}`));
       row.append(el('span', { className: 'muted' }, `· ${p.dexId}`));
       card.append(row);
-      card.append(el('div', { style: 'margin-top:6px;' },
-        `$${p.priceUsd ?? '–'}  ·  24h ${p.priceChange?.h24 ?? '—'}%`));
-      card.append(el('div', { className: 'muted' },
-        `Liq ${fmtUsd(p.liquidity?.usd || 0)}  ·  Vol24h ${fmtUsd(p.volume?.h24 || 0)}`));
+      card.append(el('div', {}, `$${p.priceUsd ?? '–'} · 24h ${p.priceChange?.h24 ?? '—'}%`));
+      card.append(el('div', { className: 'muted' }, `Liq ${fmtUsd(p.liquidity?.usd||0)} · Vol24h ${fmtUsd(p.volume?.h24||0)}`));
       out.append(card);
     });
+
+    // Optional: Fetch Pump.fun bonding curve data
+    try {
+      const pumpData = await fetchPumpFunData(mint);
+      const trade = pumpData?.data?.Solana?.DEXTradeByTokens?.[0]?.Trade;
+      if (trade) {
+        out.append(el('div', { className: 'card' },
+          el('div', {}, el('strong', {}, 'Pump.fun Data'), el('span', { className: 'pump-badge' }, 'Live')),
+          el('div', { className: 'muted' }, `Last Price: ${trade.PriceInUSD || '—'} · Market: ${short(trade.Market?.MarketAddress)}`)
+        ));
+      }
+    } catch (e) { logErr('bitquery pump', e); }
   } catch (e) {
     logErr('dexscreener', e);
     out.textContent = 'Lookup failed — see log.';
   }
 });
 
-/* --- Tx drawer --- */
-async function showTxs(addr, host) {
-  // Prevent double-drawers
-  const existing = host.querySelector('.tx-drawer');
-  if (existing) { existing.remove(); return; }
-
-  const drawer = el('div', { className: 'tx-drawer', style: 'margin-top:12px; border-top:1px solid var(--border); padding-top:10px;' });
-  drawer.append(el('div', { className: 'muted' }, 'Loading transactions…'));
-  host.append(drawer);
-
-  try {
-    const txs = await fetchTxs(addr);
-    drawer.innerHTML = '';
-    if (!txs.length) { drawer.append(el('div', { className: 'muted' }, 'No transactions.')); return; }
-    txs.forEach(t => {
-      const line = el('div', { style: 'padding:6px 0; border-bottom:1px solid #21262d;' });
-      line.append(el('div', { style: 'font-size:13px;' }, t.description || t.type || '(no description)'));
-      line.append(el('div', { className: 'muted' }, new Date((t.timestamp || 0) * 1000).toLocaleString()));
-      drawer.append(line);
-    });
-  } catch (e) {
-    drawer.innerHTML = '';
-    drawer.append(el('div', { className: 'muted' }, 'Tx fetch failed — see log.'));
-    logErr('helius tx', e);
-  }
-}
-
 /* =========================================================
-   10. BOOT
+   9. BOOT
    ========================================================= */
 const saved = localStorage.getItem('walletAddress');
-if (saved) {
-  currentWallet = saved;
-  whoEl.textContent = `Connected: ${saved.slice(0,4)}…${saved.slice(-4)}`;
-}
+if (saved) { currentWallet = saved; whoEl.textContent = `Connected: ${saved.slice(0,4)}…${saved.slice(-4)}`; }
 renderBoard();
 </script>
 </body>
