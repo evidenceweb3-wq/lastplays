@@ -110,6 +110,7 @@ a.l:hover{opacity:.75;text-shadow:0 0 8px var(--green)}
 .badge.smart{background:rgba(153,69,255,.18);color:#d4b3ff;border-color:rgba(153,69,255,.45)}
 .badge.fresh{background:rgba(20,241,149,.14);color:var(--teal);border-color:rgba(20,241,149,.35)}
 .badge.whale{background:rgba(153,69,255,.2);color:#e0c8ff;border-color:rgba(153,69,255,.5)}
+.badge.kol{background:rgba(255,184,77,.2);color:#ffd699;border-color:rgba(255,184,77,.5);box-shadow:0 0 10px rgba(255,184,77,.3)}
 @keyframes pulseHot{0%,100%{box-shadow:0 0 12px rgba(255,84,112,.2)}50%{box-shadow:0 0 20px rgba(255,84,112,.5)}}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
@@ -340,7 +341,10 @@ const walletCell=(wallet,profile,size=28)=>{
   const label=kol?.name||profile?.username||short(wallet);
   return `<a href="#wallet/${esc(wallet)}" class="wallet-cell">
     ${walletAvatar(wallet,profile,size)}
-    <span class="info"><span class="u">${esc(label)} ${kol?'<span class="badge smart">KOL</span>':''}</span><span class="addr">${short(wallet)}</span></span>
+    <span class="info">
+      <span class="u">${esc(label)} ${kol?'<span class="badge kol">👑 KOL</span>':''}</span>
+      <span class="addr">${short(wallet)}</span>
+    </span>
   </a>`;
 };
 
@@ -385,6 +389,11 @@ const api=async(p,o={})=>{if(!sb)bad('database_not_configured',503);
    if(['buy','sell'].includes(q.get('side')))s=s.eq('side',q.get('side'));
    if(+q.get('minSol'))s=s.gte('sol_amount',+q.get('minSol'));
    return{events:ck(await s),fetchedAt:now}}
+
+ if(path==='/kol-trades'){const wallets=Array.from(kolsCache.keys());
+   if(wallets.length===0)return{events:[],fetchedAt:now};
+   const{data}=await sb.from('trades').select('signature,side,sol_amount,wallet,block_time,tokens(mint,name,symbol,market_cap_usd,image_url)').in('wallet',wallets).order('block_time',{ascending:false}).limit(50);
+   return{events:data||[],fetchedAt:now}}
 
  if(path.startsWith('/wallet/')){const a=path.slice(8);if(!B58.test(a))bad('invalid_address');
    const[perf,trades]=await Promise.all([
@@ -439,7 +448,7 @@ async function getSmartWallets(){
 async function computeSignals(){
   await getKOLs();
   const smart=await getSmartWallets();
-  const cutoff=new Date(Date.now()-6*3600*1000).toISOString();
+  const cutoff=new Date(Date.now()-12*3600*1000).toISOString(); // 12 hours
   const {data:trades,error}=await sb.from('trades')
     .select('mint,wallet,side,sol_amount,block_time,tokens(mint,symbol,name,market_cap_usd,image_url)')
     .gte('block_time',cutoff).order('block_time',{ascending:false}).limit(2000);
@@ -574,24 +583,43 @@ const V={
 
 async alpha(){
   const {ranked,smartCount,totalTokens}=await computeSignals();
-  const hot=ranked.filter(t=>t.score>=150).length;
-  const top=ranked.slice(0,9);
+  const kolPlays=ranked.filter(t=>t.kol_buys>0);
+  const otherPlays=ranked.filter(t=>t.kol_buys===0);
 
   $('#app').innerHTML=`
     ${warnBanner(lastStatus)}
-    <h2>◉ ALPHA TRADE SUGGESTIONS <span style="color:var(--purple)">●</span></h2>
-    <p class="sub">Filtered by volume, mcap, and KOL smart money. Dead tokens and rugs removed.</p>
+    
+    <h2>👑 KOL ALPHA PLAYS</h2>
+    <p class="sub">Tokens bought by your tracked KOLs in the last 12 hours.</p>
+    
+    ${kolPlays.length===0?actionCard('👑','NO KOL BUYS YET',
+      'None of your tracked KOLs have bought a token recently.',
+      ['Check their specific wallets in <code>#kols</code>','Maybe they are just holding and not trading right now']):
+    `<div class="alpha-grid">${kolPlays.slice(0,6).map(t=>`
+      <div class="alpha-card" onclick="location.hash='token/${esc(t.mint)}'" style="border-color:var(--purple);box-shadow:0 0 20px rgba(153,69,255,.1)">
+        <div class="head">
+          ${tokenAvatar(t,52)}
+          <div class="meta">
+            <div class="sym">${esc(t.symbol)}</div>
+            <div class="mint">${short(t.mint)}</div>
+          </div>
+          <div class="score">
+            <div class="score-val" style="color:#d4b3ff">${Math.round(t.score)}</div>
+            <span class="badge smart">◆ KOL PLAY</span>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div><div class="lbl">MARKET CAP</div><div class="val">${t.mcap!=null?'$'+n(t.mcap,0):'—'}</div></div>
+          <div><div class="lbl">VOLUME 1H</div><div class="val">${n(t.vol_1h,1)} SOL</div></div>
+          <div><div class="lbl">BUY PRESSURE</div><div class="val big ${t.buy_ratio>0.6?'buy':t.buy_ratio<0.4?'sell':''}">${Math.round(t.buy_ratio*100)}%</div></div>
+          <div><div class="lbl">KOL BUYS</div><div class="val buy">${t.kol_buys} ×</div></div>
+        </div>
+      </div>`).join('')}</div>`}
 
-    <div class="bar health">
-      <div class="stat"><span class="lbl">ACTIVE TOKENS</span><span class="val">${totalTokens}</span></div>
-      <div class="stat"><span class="lbl">🔥 HOT PLAYS</span><span class="val" style="color:var(--hot)">${hot}</span></div>
-      <div class="stat"><span class="lbl">KOLs TRACKED</span><span class="val">${kolsCache.size}</span></div>
-    </div>
-
-    ${top.length===0?actionCard('📡','NO SIGNALS YET',
-      'No active tokens in the last 6 hours.',
-      ['Check <code>#feed</code> to see trades landing','Ensure the Helius webhook is active']):
-    `<div class="alpha-grid">${top.map(t=>`
+    <h2 style="margin-top:32px">🔍 OTHER OPPORTUNITIES</h2>
+    <p class="sub">High volume tokens without KOL activity yet.</p>
+    ${otherPlays.length===0?empty('No other tokens are popping off right now.',{icon:'📡'}):
+    `<div class="alpha-grid">${otherPlays.slice(0,6).map(t=>`
       <div class="alpha-card" onclick="location.hash='token/${esc(t.mint)}'">
         <div class="head">
           ${tokenAvatar(t,52)}
@@ -609,11 +637,6 @@ async alpha(){
           <div><div class="lbl">VOLUME 1H</div><div class="val">${n(t.vol_1h,1)} SOL</div></div>
           <div><div class="lbl">BUY PRESSURE</div><div class="val big ${t.buy_ratio>0.6?'buy':t.buy_ratio<0.4?'sell':''}">${Math.round(t.buy_ratio*100)}%</div></div>
           <div><div class="lbl">NET FLOW</div><div class="val ${t.net_sol>0?'buy':'sell'}">${(t.net_sol>0?'+':'')+n(t.net_sol,1)} SOL</div></div>
-        </div>
-        <div class="badges">
-          ${t.kol_buys>0?`<span class="badge smart">🔥 ${t.kol_buys} KOL BUY</span>`:''}
-          ${t.smart_buys>0?`<span class="badge smart">◆ ${t.smart_buys} SMART</span>`:''}
-          ${t.wallets_count>15?`<span class="badge warm">${t.wallets_count} BUYERS</span>`:''}
         </div>
       </div>`).join('')}</div>`}`;
 },
@@ -648,7 +671,7 @@ async feed(){
   $('#app').innerHTML=`
     ${warnBanner(lastStatus)}
     <h2>LIVE FEED <span style="color:var(--green)">●</span></h2>
-    <p class="sub">Raw Pump.fun trade stream.</p>
+    <p class="sub">Raw Pump.fun trade stream. KOLs are marked with 👑.</p>
     <div class="bar">
       <select id="sd"><option value="">ALL SIDES</option><option value="buy">BUYS</option><option value="sell">SELLS</option></select>
       <select id="mn"><option value="0">ANY SIZE</option><option value="1">≥ 1 SOL</option><option value="5">≥ 5 SOL</option><option value="20">≥ 20 SOL</option></select>
@@ -668,14 +691,22 @@ async kols(){
   await getKOLs();
   const list=Array.from(kolsCache.values());
   
+  if(list.length===0){
+    $('#app').innerHTML=`
+      <h2>◈ TRACKED KOLs</h2>
+      ${actionCard('👤','NO KOLs ADDED', 'No KOLs are being tracked yet.', ['Click the + ADMIN button in the top right','Enter their Wallet, Name, and Avatar URL'])}`;
+    return;
+  }
+
+  // Fetch latest trades for these KOLs
+  const d = await api('/kol-trades');
+  const kolTrades = d.events;
+
   $('#app').innerHTML=`
     <h2>◈ TRACKED KOLs</h2>
-    <p class="sub">Key Opinion Leaders whose every move is tracked. Use the Admin button top-right to add more.</p>
+    <p class="sub">Key Opinion Leaders whose every move is tracked.</p>
     
-    ${list.length===0?actionCard('👤','NO KOLs ADDED',
-      'No KOLs are being tracked yet.',
-      ['Click the + ADMIN button in the top right','Enter their Wallet, Name, and Avatar URL']):
-    `<div class="alpha-grid">${list.map(k=>`
+    <div class="alpha-grid">${list.map(k=>`
       <div class="alpha-card" onclick="location.hash='wallet/${esc(k.wallet)}'">
         <div class="head">
           ${walletAvatar(k.wallet,null,52)}
@@ -684,15 +715,31 @@ async kols(){
             <div class="mint">${short(k.wallet)}</div>
           </div>
           <div class="score">
-            <span class="badge smart">KOL</span>
+            <span class="badge kol">👑 KOL</span>
           </div>
         </div>
-        <div class="stat-row">
-          <div style="grid-column:1/-1;text-align:center;padding-top:10px">
-            <span style="color:var(--dim);font-size:12px">Click to view their recent trades & PnL</span>
-          </div>
-        </div>
-      </div>`).join('')}</div>`}`;
+      </div>`).join('')}
+    </div>
+
+    <h2 style="margin-top:32px">KOL LIVE ACTIVITY</h2>
+    <p class="sub">Latest trades executed by your tracked KOLs.</p>
+    
+    <div class="box">
+      ${kolTrades.length===0?empty('Your KOLs have not made any trades recently.',{icon:'📭'}):`
+      <table>
+        <tr><th>TIME</th><th>KOL</th><th>TOKEN</th><th>SIDE</th><th>SOL</th></tr>
+        ${kolTrades.map(e=>{
+          const k = kolsCache.get(e.wallet);
+          return `<tr>
+            <td>${ago(e.block_time)}</td>
+            <td>${walletCell(e.wallet,null,24)}</td>
+            <td>${tokenCell(e.tokens,24)}</td>
+            <td class="${e.side}">${e.side.toUpperCase()}</td>
+            <td><b>${n(e.sol_amount)}</b></td>
+          </tr>`;
+        }).join('')}
+      </table>`}
+    </div>`;
 },
 
 async wallet(a){
@@ -722,7 +769,7 @@ async wallet(a){
     <div class="token-hero">
       ${walletAvatar(a,profile,80)}
       <div class="info">
-        <h2 class="name">${esc(kol?.name || profile?.username || short(a))} ${kol?'<span class="badge smart">KOL</span>':''}</h2>
+        <h2 class="name">${esc(kol?.name || profile?.username || short(a))} ${kol?'<span class="badge kol">👑 KOL</span>':''}</h2>
         <div class="mint-row">
           <code class="mono" style="color:var(--muted);font-size:11.5px">${esc(a)}</code>
           <button onclick="copy('${esc(a)}');toast('Copied')">COPY</button>
@@ -771,13 +818,17 @@ async token(m){
   const smart=await getSmartWallets();
   const trades=d.trades;
   const now=Date.now();
-  let vol_5m=0,vol_1h=0,vol_total=0,buy_sol=0,sell_sol=0,smart_buys=0;
+  let vol_5m=0,vol_1h=0,vol_total=0,buy_sol=0,sell_sol=0,smart_buys=0,kol_buys=0;
   const buyers=new Map();
   let first_seen=null;
   for(const x of trades){
     const sol=Number(x.sol_amount);const bt=new Date(x.block_time).getTime();const age=(now-bt)/1000;
     vol_total+=sol;if(age<300)vol_5m+=sol;if(age<3600)vol_1h+=sol;
-    if(x.side==='buy'){buy_sol+=sol;buyers.set(x.wallet,(buyers.get(x.wallet)||0)+1);if(smart.has(x.wallet))smart_buys++}
+    if(x.side==='buy'){
+      buy_sol+=sol;buyers.set(x.wallet,(buyers.get(x.wallet)||0)+1);
+      if(smart.has(x.wallet))smart_buys++;
+      if(kolsCache.has(x.wallet))kol_buys++;
+    }
     else{sell_sol+=sol}
     if(!first_seen||bt<first_seen)first_seen=bt;
   }
@@ -815,6 +866,7 @@ async token(m){
       <div class="stat"><span class="lbl">NET FLOW</span><span class="val ${buy_sol-sell_sol>0?'buy':'sell'}">${(buy_sol-sell_sol>0?'+':'')+n(buy_sol-sell_sol,2)}</span></div>
     </div>
 
+    ${kol_buys>0?`<div class="banner purple"><div><b>👑 KOL ACTIVITY</b><div class="msg">${kol_buys} tracked KOL${kol_buys>1?'s':''} bought this token.</div></div></div>`:''}
     ${smart_buys>0?`<div class="banner purple"><div><b>◆ SMART MONEY IN</b><div class="msg">${smart_buys} known profitable wallet${smart_buys>1?'s':''} bought.</div></div></div>`:''}
 
     <h2>TOP BUYERS</h2>
@@ -834,7 +886,7 @@ async token(m){
         <td>${ago(x.block_time)}</td>
         <td class="${x.side}">${x.side.toUpperCase()}</td>
         <td><b>${n(x.sol_amount)}</b> ${whaleBadge(x.sol_amount)}</td>
-        <td>${walletCell(x.wallet,null,24)} ${smart.has(x.wallet)?'<span class="badge smart">S</span>':''}</td>
+        <td>${walletCell(x.wallet,null,24)}</td>
       </tr>`).join('')}
     </table>`:empty('No trades recorded.',{icon:'📭'})}</div>`;
 },
